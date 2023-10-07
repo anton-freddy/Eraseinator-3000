@@ -1,6 +1,10 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <WebSocketsServer.h>
+
+// #include <AsyncTCP.h>
+// #include <ESPAsyncWebServer.h>
+
 #include <AsyncTCP.h>
 #include <ESPmDNS.h>
 
@@ -13,11 +17,8 @@ float y_curr = 0;
 
 // ESPtesting
 String testingdata = "";
-const char* ssid = "ESPtesting";
-const char* password = "ESPtesting";
-IPAddress staticIP(192, 168, 137, 100); // Replace with your desired static IP address
-IPAddress gateway(192, 168, 137, 1);    // Replace with your network gateway IP address
-IPAddress subnet(255, 255, 255, 0);   // Replace with your network subnet mask
+const char *ssid = "Erasinator-3000";
+const char *password = "Doofenshmirtz";
 
 WebServer server(80);
 WebSocketsServer webSocketServer(81);
@@ -252,9 +253,9 @@ void sendLogData() {
   float x = random(-100, 100);
   float y = random(-100, 100);
   float array[2];
-  testingdata += String(x_curr);
+  testingdata += String(x);
   testingdata += ",";
-  testingdata += String(y_curr);
+  testingdata += String(y);
   // count = 0;
   // for(int i = 0; i<2; i++){
   //   count= random(0,100);
@@ -281,8 +282,7 @@ void sendLogData() {
 
 void web_setup() {
   Serial.begin(115200);
-  WiFi.config(staticIP, gateway, subnet); // Set the static IP address
-  WiFi.begin(ssid, password);
+  WiFi.softAP(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Connecting to WiFi...");

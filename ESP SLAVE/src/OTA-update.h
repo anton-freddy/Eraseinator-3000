@@ -18,7 +18,7 @@
 
 #define LOCAL_NETWORK_MODE
 // #define AP_MODE
-//#define SLAVE_MODE
+// #define SLAVE_MODE
 
 #ifdef SLAVE_MODE
 const char *ssid = "Erasinator-3000";
@@ -31,8 +31,8 @@ const char *password = "Doofenshmirtz";
 #endif
 
 #ifdef LOCAL_NETWORK_MODE
-const char *ssid = "ESPtesting";
-const char *password = "ESPtesting";
+const char *ssid = "ANTONS-ZENBOOK";
+const char *password = "password";
 #endif
 
 AsyncWebServer server(80);
@@ -76,16 +76,13 @@ void OTA_setup(void)
               { request->send(200, "text/plain", HTTP_SEND); });
 #endif
 
-      if(!MDNS.begin("Eraseinator3000-slave")) {
-     Serial.println("Error starting mDNS");
-}
-    WebSerial.begin(&server);
+    if (!MDNS.begin("Eraseinator3000-slave"))
+    {
+        Serial.println("Error starting mDNS");
+    }
+    // WebSerial.begin(&server);
     AsyncElegantOTA.begin(&server); // Start ElegantOTA
-    WebSerial.flush();
+    // WebSerial.flush();
     server.begin();
     Serial.println("HTTP server started");
-}
-
-void OTA_loop(void)
-{
 }

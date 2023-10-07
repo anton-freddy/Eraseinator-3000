@@ -1,3 +1,6 @@
+#ifndef ERROR_H
+#define ERROR_H
+
 #include <Arduino.h>
 #include <iostream>
 #include <math.h>
@@ -17,6 +20,10 @@
 #define IR2 11
 #define IR3 12
 #define IR4 13
+#define DC_MOTORS 14
+#define L_DC_MOTOR 15
+#define R_DC_MOTOR 16
+#define BATTERY 17
 
 void send_ERROR(int module_code, int error_code);
 
@@ -27,3 +34,6 @@ String getMovement_ERRORS(int module_code, int error_code);
 String getIR_ERRORS(int module_code, int error_code);
 
 void serial_send_ERROR(String MSG);
+
+
+#endif  // ERROR_H

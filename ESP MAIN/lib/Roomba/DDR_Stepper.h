@@ -1,7 +1,9 @@
+#ifndef DDR_STEPPER_H
+#define DDR_STEPPER_H
+
 #include <Arduino.h>
 #include <math.h>
-#include <AS5600_Wire.h>
-#include <AS5600_Wire1.h>
+#include <AS5600_ENC.h>
 #include <Wire.h>
 #include <ERROR.h>
 #include <MPU9250.h>
@@ -58,7 +60,7 @@ struct Move
   Move *next;
 };
 
-class EasyRobot
+class DDR_Control
 {
 
 private:
@@ -66,8 +68,8 @@ private:
   Move *tail = nullptr;
   
 
-  AMS_5600_Wire R_ENCODER;
-  AMS_5600_Wire1 L_ENCODER;
+  AS5600_ENC R_ENCODER;
+  AS5600_ENC L_ENCODER;
 
   //  Stepper Varibales
   byte L_E_pin;
@@ -208,7 +210,7 @@ volatile float R_Current_POS_MM = 0;
   void setSpeedInMMS(float speed);
 
 
-  EasyRobot(float wheel_circumfrence, float wheel_distance, int MICRO_STEP, int STEPPER_STEP_COUNT, int GEAR_RATIO);
+  DDR_Control(float wheel_circumfrence, float wheel_distance, int MICRO_STEP, int STEPPER_STEP_COUNT, int GEAR_RATIO);
   void loop();
   //  Move Buffer   //-----------
   void enqueueMove(float x, float y);
@@ -237,7 +239,7 @@ volatile float R_Current_POS_MM = 0;
   void begin(unit speed_units, float speed);
   void setUpMotors(byte leftMotorStepPin, byte leftMotorDirPin, byte leftMotorEnablePin, byte rightMotorStepPin, byte rightMotorDirPin, byte rightMotorEnablePin, byte MS1Pin, byte MS2Pin, byte MS3Pin);
   void setUpMotors(byte leftMotorStepPin, byte leftMotorDirPin, byte leftMotorEnablePin, byte rightMotorStepPin, byte rightMotorDirPin, byte rightMotorEnablePin);
-  void setUpEncoders();
+  void setUpEncoders(TwoWire &I2C_left, TwoWire &I2C_right);
   void resetEncoders(motor selector);
   float getEncoderAngle(motor identifier);
 
@@ -273,3 +275,6 @@ volatile float R_Current_POS_MM = 0;
   unsigned long backOff_current_millis = 0;
   unsigned long backOff_previous_millis = 0;
 };
+
+
+#endif // EasyRobot_H

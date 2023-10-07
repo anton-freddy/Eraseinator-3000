@@ -5,6 +5,7 @@
 #include <OTA-update.h>
 //#include <Servo.h>
 #include <ESP32_Servo.h>
+#include <LittleFS.h>
 
 const int SDA_pin = 21;
 const int SCL_pin = 22;
@@ -73,8 +74,8 @@ int servo_pos = 90;
 int targetPos = 90;
 int charge_level = 0;
 
-int L_DC_state = HIGH;
-int R_DC_state = HIGH;
+bool is_L_DC_ON = false;
+bool is_R_DC_ON = false;
 
 float ints_to_float(int integerPart, int decimalPart);
 void float_to_ints(float floatValue, int &integerPart, int &decimalPart);

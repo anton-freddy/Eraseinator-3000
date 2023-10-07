@@ -10,13 +10,14 @@
 #include <ERROR.h>
 #include <web_connection.h>
 #include <Battery.h>
+//#include <AS5600_ENC.h>
 
 #include <Esp.h>
 
 // Libaries
-#include <EasyRobot.h>
+#include <DDR_Stepper.h>
 #include <ESP32Servo.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <LiDAR.h>
 
 
@@ -28,12 +29,14 @@ const int GEAR_RATIO = 2;
 // const int STEPS_PER_REV;
 
 //  I2C
-#define I2CA Wire
-#define I2CB Wire1
+//#define I2CA Wire
+//#define I2CB Wire1
 const int I2CA_SDA = 8;
 const int I2CA_SCL = 9;
 const int I2CB_SDA = 1;
 const int I2CB_SCL = 2;
+
+
 
 //  LUNA
 const int16_t LiDAR_ADD_1 = 0x10; // Straight Ahead
@@ -42,11 +45,8 @@ const int16_t LiDAR_ADD_3 = 0x15; // 3rd Luna
 uint16_t LiDAR_frame_rate = 0x00;
 const int LiDAR_1_signal = 48;
 const int LiDAR_2_signal = 47;
-const int LiDAR_3_signal = 21;
+const int LED_RING_pin = 21;  // LiDAR 3 Signal on PCB
 
-#define ENABLE_LiDAR1
-#define ENABLE_LiDAR2
-//#define ENABLE_LiDAR3
 
 // Motor Pins
 // S2
@@ -67,21 +67,18 @@ const int MS3_pin = 40;
 const uint8_t slave_ADDR = 0x55;
 
 //  Line Sensors
-const int L_IR_PIN = 14;
-const int BATTERY_LEVEL_PIN = 10;    // IR2 on board pinout
-const int C_BUMP_PIN = 38; // IR3 on board pinout
-const int R_IR_PIN = 39;    // IR4 on board pinout
+const int L_IR_PIN = 14;            // IR1 on board pinout
+const int BATTERY_LEVEL_PIN = 10;   // IR2 on board pinout
+const int C_BUMP_PIN = 38;          // IR3 on board pinout
+const int R_IR_PIN = 39;            // IR4 on board pinout
 
-Battery batt(8000, 13000, BATTERY_LEVEL_PIN);//3041
+Battery battery(8000, 13000, BATTERY_LEVEL_PIN);//3041
 
 //  Limit Switches
 const int R_BUMP_PIN = 4; // LIM1 on board pinout
 const int L_BUMP_PIN = 5; // LIM2 on board pinout
 
 const int obstciale_radius = 200;
-
-
-
 
 //  SPI
 const int MISO_PIN = 13;
@@ -101,7 +98,7 @@ float map_f(float x, float in_min, float in_max, float out_min, float out_max)
   const float run = in_max - in_min;
   if (run == 0)
   {
-    log_e("map(): Invalid input range, min == max");
+    log_e("map_f(): Invalid input range, min == max");
     return -1; // AVR returns -1, SAM returns 0
   }
   const float rise = out_max - out_min;
@@ -156,6 +153,7 @@ void bump_ISR_R();
 void setupBumpers();
 void setBumpBackOFF();
 void tickServo();
+void setDCmotor(int motor_select, bool active);
 
 bool bump_triggred = false;
 Servo servo;
@@ -172,3 +170,47 @@ float requestFloatFromSlave(uint8_t regAddress);
 
 void writeIntToSlave(uint8_t regAddress, int data);
 void writeFloatToSlave(uint8_t regAddress, float data);
+
+
+void I2C_Scan(TwoWire &I2C) {
+  TwoWire *ptr;
+  ptr = &I2C;
+  byte error, address;
+  int nDevices;
+
+  Serial.println("Scanning...");
+
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) 
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmisstion to see if
+    // a device did acknowledge to the address.
+    ptr->beginTransmission(address);
+    error = ptr->endTransmission();
+
+    if (error == 0)
+    {
+      Serial.print("I2C device found at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.print(address,HEX);
+      Serial.println("  !");
+
+      nDevices++;
+    }
+    else if (error==4) 
+    {
+      Serial.print("Unknown error at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("done\n");
+
+  delay(5000);           // wait 5 seconds for next scan
+}

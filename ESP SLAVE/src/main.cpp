@@ -2,14 +2,21 @@
 
 void setup()
 {
+    Serial.begin(115200);
+    if(!LittleFS.begin()){
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+
   DC_setup();
-  Serial.begin(115200);
+
   OTA_setup();
+  
   //servo_setup();
 
-  // Wire.begin(slave_ADDR);
-  // Wire.onReceive(receiveEvent);
-  // Wire.onRequest(requestEvent);
+  Wire.begin(slave_ADDR);
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
   // servoState = RUN;
   lcd_setup();
   // while(1){
@@ -20,11 +27,11 @@ void setup()
   //   WebSerial.println(servo.read());
   //   delay(1000);
   // }
+  //WebSerial.println("End of SetUp");
 }
 
 void loop()
 {
-  OTA_loop();
   // servo_loop();
   lcd_loop();
   // int pos = 90;
@@ -118,13 +125,13 @@ void receiveEvent(int numBytes)
 
     case REG_DCL:
     {
-      L_DC_state = (int)Wire.read();
+      is_L_DC_ON = (int)Wire.read();
       return;
     }
     break;
     case REG_DCR:
     {
-      R_DC_state = (int)Wire.read();
+      is_R_DC_ON = (int)Wire.read();
       return;
     }
     break;
@@ -188,12 +195,12 @@ void requestEvent()
   break;
   case REG_DCL:
   {
-    Wire.write(L_DC_state);
+    Wire.write((int)is_L_DC_ON);
   }
   break;
   case REG_DCR:
   {
-    Wire.write(R_DC_state);
+    Wire.write((int)is_R_DC_ON);
   }
   break;
     // Add more cases for additional registers here
@@ -222,23 +229,15 @@ void DC_setup()
   pinMode(LDC_pin, OUTPUT);
   digitalWrite(RDC_pin, LOW);
   digitalWrite(LDC_pin, LOW);
+  is_L_DC_ON = LOW;
+  is_R_DC_ON = LOW;
 }
 
 void DC_loop()
 {
-  digitalWrite(LDC_pin, L_DC_state);
-  digitalWrite(RDC_pin, R_DC_state);
-  if (L_DC_state != LOW || HIGH)
-  {
-    Serial.println("No Valid State for L DC Motor");
-    L_DC_state = LOW;
-  }
+  digitalWrite(LDC_pin, (int)is_L_DC_ON);
+  digitalWrite(RDC_pin, (int)is_R_DC_ON);
 
-  if (R_DC_state != LOW || HIGH)
-  {
-    Serial.println("No Valid State for R DC Motor");
-    R_DC_state = LOW;
-  }
 }
 
 void servo_setup()

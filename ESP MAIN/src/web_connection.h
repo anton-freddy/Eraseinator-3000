@@ -20,8 +20,8 @@
 #define AP_MODE
 
 #ifdef AP_MODE
-const char *ssid = "Erasinator-3000";
-const char *password = "Doofenshmirtz";
+const char *ssid = "ESPtesting";
+const char *password = "ESPtesting";
 #endif
 
 #ifdef LOCAL_NETWORK_MODE
@@ -73,10 +73,7 @@ void web_setup(void)
   Serial.println(WiFi.softAPIP());
   IPAddress APip(WiFi.softAPIP());
 
-  HTTP_SEND = "Erasinator 3000 main controller - head to " + (String)APip.toString() + "/update to update the firmware";
 
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send(200, "text/plain", HTTP_SEND); });
 #endif
 
 #ifdef LOCAL_NETWORK_MODE

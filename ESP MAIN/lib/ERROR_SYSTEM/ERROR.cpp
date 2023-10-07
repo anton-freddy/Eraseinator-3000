@@ -3,17 +3,31 @@
 const String ERROR_MSG_START = "\n------------------\nERROR FOUND\nMODULE TYPE: ";
 void send_ERROR(int module_code, int error_code)
 {
-    if ((module_code == LiDAR_1) || (module_code == LiDAR_2) || (module_code == LiDAR_3))
+
+    switch (module_code)
+    {
+    case LiDAR_1:
+    case LiDAR_2:
+    case LiDAR_3:
     {
         serial_send_ERROR(getLiDAR_ERRORS(module_code, error_code));
     }
-    else if ((module_code == LEFT_STEPPER) || (module_code == RIGHT_STEPPER))
+    break;
+
+    case LEFT_STEPPER:
+    case RIGHT_STEPPER:
     {
         serial_send_ERROR(getStepper_ERRORS(module_code, error_code));
     }
-    else if ((module_code == LEFT_ENCODER) || (module_code == RIGHT_ENCODER) || (module_code == ENCODERS))
+    break;
+
+    case LEFT_ENCODER:
+    case RIGHT_ENCODER:
+    case ENCODERS:
     {
         serial_send_ERROR(getEncoder_ERRORS(module_code, error_code));
+    }
+    break;
     }
 }
 
@@ -104,7 +118,6 @@ String getStepper_ERRORS(int module_code, int error_code)
         MSG += " --- ";
     }
 
-
     switch (error_code)
     {
     case 0x00:
@@ -159,7 +172,6 @@ String getEncoder_ERRORS(int module_code, int error_code)
         MSG += " --- ";
     }
 
-
     switch (error_code)
     {
     case 0x00:
@@ -202,14 +214,13 @@ String getMovement_ERRORS(int module_code, int error_code)
         MSG += " --- ";
     }
 
-
     switch (error_code)
     {
     case 0x00:
         MSG += "MOVE QUEUE IS FULL";
         break;
 
-        case 0x01:
+    case 0x01:
         MSG += "MOVEMENT STATE ENCOUNTERED ERROR";
         break;
 
@@ -221,7 +232,8 @@ String getMovement_ERRORS(int module_code, int error_code)
     return MSG;
 }
 
-String getIR_ERRORS(int module_code, int error_code){
+String getIR_ERRORS(int module_code, int error_code)
+{
     String MSG = ERROR_MSG_START;
 
     switch (module_code)
@@ -230,15 +242,15 @@ String getIR_ERRORS(int module_code, int error_code){
         MSG += "IR1 --- ";
         break;
 
-            case IR2:
+    case IR2:
         MSG += "IR2 --- ";
         break;
 
-            case IR3:
+    case IR3:
         MSG += "IR3 --- ";
         break;
 
-            case IR4:
+    case IR4:
         MSG += "IR4 --- ";
         break;
 
@@ -257,11 +269,57 @@ String getIR_ERRORS(int module_code, int error_code){
         MSG += " --- ";
     }
 
-
     switch (error_code)
     {
     case 0x00:
         MSG += "MOVE QUEUE IS FULL";
+        break;
+
+    default:
+        MSG += "UNKOWN ERROR";
+        break;
+    }
+
+    return MSG;
+}
+
+String getDC_ERRORS(int module_code, int error_code)
+{
+    String MSG = ERROR_MSG_START;
+
+    switch (module_code)
+    {
+    case DC_MOTORS:
+        MSG += "DC BOTH --- ";
+        break;
+
+    case L_DC_MOTOR:
+        MSG += "L DC --- ";
+        break;
+
+    case R_DC_MOTOR:
+        MSG += "R DC --- ";
+        break;
+
+    default:
+        MSG += module_code + " --- ";
+        break;
+    }
+    if (error_code < 16)
+    {
+        MSG += "ERROR CODE: 0x0" + String(error_code, HEX);
+        MSG += " --- ";
+    }
+    else
+    {
+        MSG += "ERROR CODE: 0x" + String(error_code, HEX);
+        MSG += " --- ";
+    }
+
+    switch (error_code)
+    {
+    case 0x00:
+        MSG += "NO MOTOR SELECT TO RETURN STATUS";
         break;
 
     default:
