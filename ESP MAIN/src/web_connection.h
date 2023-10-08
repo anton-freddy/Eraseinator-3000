@@ -14,14 +14,17 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
 #include <ESPmDNS.h>
-#include <ESPDash.h>
+#include <LittleFS.h>
+#include <WebSerial.h>
+//#include <FTP.h>
 
-//#define LOCAL_NETWORK_MODE
+
+#define LOCAL_NETWORK_MODE
 #define AP_MODE
 
 #ifdef AP_MODE
-const char *ssid = "ESPtesting";
-const char *password = "ESPtesting";
+const char *ap_ssid = "Eraseinator-3000";
+const char *ap_password = "password";
 #endif
 
 #ifdef LOCAL_NETWORK_MODE
@@ -40,22 +43,14 @@ int update_led();
 void web_setup(void);
 void web_loop(void);
 void update_lidar_readings(int LiDAR1, int LiDAR2);
+void sendCoordinatesToWeb(float xValue, float yValue);
 
-webservervar server_var;
+//webservervar server_var;
 
 AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
 
-  
-ESPDash dashboard(&server);
 
-Card led_button(&dashboard, BUTTON_CARD, "LED");
-Card motor_enable(&dashboard, BUTTON_CARD, "MOTOR STATUS");
-Card card_lidar_1(&dashboard, GENERIC_CARD, "LiDAR 1 Distance", "CM");
-Card card_lidar_2(&dashboard, GENERIC_CARD, "LiDAR 2 Distance","CM");
-Card card_lidar_1_abs(&dashboard, GENERIC_CARD, "Object Detected");
-Card card_lidar_2_abs(&dashboard, GENERIC_CARD, "Object Detected");
-Card card_bump_state(&dashboard, GENERIC_CARD, "BUMP State");
-Card card_charge_level(&dashboard, GENERIC_CARD, "Battery Level", "%");
 
 String HTTP_SEND;
 
@@ -63,70 +58,97 @@ void web_setup(void)
 {
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
+  File config = LittleFS.open("/cfg.txt");
+  config.find("SSID:<");
+  String SSID = config.readStringUntil('>');
+  config.find("PASSWORD:<");
+  String PASSWORD = config.readStringUntil('>');
 
-#ifdef AP_MODE
-  WiFi.softAP(ssid, password);
-  Serial.println("");
-  Serial.print("Network Created: ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.softAPIP());
-  IPAddress APip(WiFi.softAPIP());
+  Serial.println(SSID);
+  Serial.println(PASSWORD);
 
 
-#endif
-
-#ifdef LOCAL_NETWORK_MODE
-WiFi.begin(ssid, password);
+WiFi.begin(SSID, PASSWORD);
+int i = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
+    if(i > 1000){
+        WiFi.softAP(ap_ssid, ap_password);
+        Serial.println("");
+        Serial.print("Network Created: ");
+        Serial.println(ssid);
+        Serial.print("IP address: ");
+        Serial.println(WiFi.softAPIP());
+        break;
+    }
     delay(10);
     Serial.print(".");
+    i++;
   }
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  IPAddress APip(WiFi.localIP());
-  HTTP_SEND = "Erasinator 3000 main controller - head to " + (String)APip.toString() + "/update to update the firmware";
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send(200, "text/plain", HTTP_SEND); });
-#endif
+  if(WiFi.status() == WL_CONNECTED){
+      Serial.println("");
+      Serial.print("Connected to ");
+      Serial.println(ssid);
+      Serial.print("IP address: ");
+      Serial.println(WiFi.localIP());
+  }
+
 
   if(!MDNS.begin("Eraseinator3000")) {
      Serial.println("Error starting mDNS");
 }
 
-  AsyncElegantOTA.begin(&server); // Start ElegantOTA
+    // Serve the HTML, JS, and CSS files
+  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 
-    /* Attach Button Callback */
-  led_button.attachCallback([&](int value){
-    /* Print our new button value received from dashboard */
-    server_var.led_on = value;
-    /* Make sure we update our button's value and send update to dashboard */
-    led_button.update(value);
-    dashboard.sendUpdates();
+  // Handle WebSocket events
+  ws.onEvent([](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+    if (type == WS_EVT_DATA)
+    {
+      AwsFrameInfo *info = (AwsFrameInfo *)arg;
+      if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+      {
+        // Handle WebSocket text message
+        String message = String((char *)data);
+        Serial.println("WebSocket message received: " + message);
+
+        // Process the message and send data to clients if needed
+        // For example, send data to the xyPlane via WebSocket
+        //ws.textAll(message);
+      }
+    }
   });
-
-  motor_enable.attachCallback([&](int value){
-    /* Print our new button value received from dashboard */
-    server_var.motor_on = value;
-    /* Make sure we update our button's value and send update to dashboard */
-    motor_enable.update(value);
-    dashboard.sendUpdates();
-  });
-
+  // Add WebSocket to server
+  server.addHandler(&ws);
+  WebSerial.begin(&server, "/serial");  // Start web serial
+  AsyncElegantOTA.begin(&server, "admin", "admin"); // Start ElegantOTA
   server.begin();
+  
   Serial.println("HTTP server started");
+
+  // FTP_setup();
+  // Serial.println("FTP server started");
 }
 
 void web_loop(void)
 {
-  
+  sendCoordinatesToWeb(random(-20,20),random(-20,20));
+  ws.cleanupClients();
+
 }
 
 void update_lidar_readings(int LiDAR1, int LiDAR2){
 
 }
 
+
+void sendCoordinatesToWeb(float xValue, float yValue)
+{
+  // Create a message in the format "x,y"
+  String message = String(xValue) + "," + String(yValue);
+
+  // Send the message to all connected clients
+  ws.textAll(message);
+
+  //Serial.println("Sent coordinates: " + message);
+}

@@ -1,0 +1,6 @@
+Configuration File
+Network Credentials{
+SSID:<ANTONS-ZENBOOK>
+PASSWORD:<password>
+}
+

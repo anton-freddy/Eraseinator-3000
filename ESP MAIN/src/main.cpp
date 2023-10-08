@@ -24,12 +24,14 @@ void setup()
 {
 
   Serial.begin(115200);
-  // if (!LittleFS.begin())
-  // {
-  //   Serial.println("An Error has occurred while mounting LittleFS");
-  //   return;
-  // }
-  // web_setup();
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+
+
+  web_setup();
   is_I2C_setup = setup_I2C();
 
   //I2C_Scan(I2CA);
@@ -63,7 +65,10 @@ void setup()
   //  setup_IR();
   //  setup_servo();
 
+
+   Serial.println("SETUP COMPLETE");
   delay(1000);
+ 
   // while(1);
 }
 
@@ -90,35 +95,11 @@ void loop()
 
   // send_x_object((ROOMBA.getXCoordinate()+ (9.88 * cos(ROOMBA.getOrientation()) + (3.1 + LiDAR1.getDistance())))/10);
   // send_y_object((ROOMBA.getYCoordinate()+ (9.88 * sin(ROOMBA.getOrientation()) + (3.1 + LiDAR1.getDistance())))/10);
-  // if (millis() - prevMillisBump >= 200)
-  // {
-  //   prevMillisBump = millis();
-  //   if (bump)
-  //   {
-  //     card_bump_state.update("ACTIVE");
-  //     if (bump_timeout > 1000)
-  //     {
-  //       bump = false;
-  //     }
-  //   }
-  //   else
-  //   {
-  //     card_bump_state.update("IDLE");
-  //   }
-  // }
-  // card_lidar_1.update(LiDAR1.getDistance());
-  // card_lidar_2.update(LiDAR2.getDistance());
-  // card_charge_level.update(battery.level());
+
   // dashboard.sendUpdates();
 
-  // if (server_var.led_on == 1)
-  // {
-  //   digitalWrite(LED_RING_pin, HIGH);
-  // }
-  // else
-  // {
-  //   digitalWrite(LED_RING_pin, LOW);
-  // }
+  web_loop();
+
 
   // if (server_var.motor_on == 1)
   // {
@@ -151,6 +132,7 @@ bool get_IR1_status()
   {
     return false;
   }
+  return false;
 }
 bool get_IR2_status()
 {
@@ -163,6 +145,7 @@ bool get_IR2_status()
   {
     return false;
   }
+  return false;
 }
 
 void IR1_ISR()

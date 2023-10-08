@@ -34,6 +34,8 @@ void send_ERROR(int module_code, int error_code)
 void serial_send_ERROR(String MSG)
 {
     Serial.println(MSG);
+    WebSerial.println(MSG);
+    
 }
 
 String getLiDAR_ERRORS(int module_code, int error_code)

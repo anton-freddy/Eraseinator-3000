@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <iostream>
 #include <math.h>
+#include <WebSerial.h>
+#include <LittleFS.h>
 
 #define LiDAR_1 0
 #define LiDAR_2 1

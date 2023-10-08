@@ -1,24 +1,25 @@
-// This Header is used to set the pin numbers and set the includes
+#ifndef MAIN_H
+#define MAIN_H
 
 // Inlcudes
 #include <Arduino.h>
-#include <pwmWrite.h>
-#include <Connection.h>
-#include <string>
-#include <iostream>
-#include <Wire.h>
-#include <ERROR.h>
-#include <web_connection.h>
-#include <Battery.h>
-//#include <AS5600_ENC.h>
-
 #include <Esp.h>
+#include <pins.h>
+#include <string>
+#include <math.h>
+#include <iostream>
+#include <web_connection.h>
 
 // Libaries
+#include <Wire.h>
 #include <DDR_Stepper.h>
 #include <ESP32Servo.h>
+#include <FS.h>
 #include <LittleFS.h>
+#include <FFat.h>
 #include <LiDAR.h>
+#include <Battery.h>
+#include <ERROR.h>
 
 
 const float WHEEL_CIRCUMFERENCE = 153.15; // 157.1; // Dia = 48.75
@@ -28,62 +29,10 @@ const int STEPPER_STEP_COUNT = 200;
 const int GEAR_RATIO = 2;
 // const int STEPS_PER_REV;
 
-//  I2C
-//#define I2CA Wire
-//#define I2CB Wire1
-const int I2CA_SDA = 8;
-const int I2CA_SCL = 9;
-const int I2CB_SDA = 1;
-const int I2CB_SCL = 2;
-
-
-
-//  LUNA
-const int16_t LiDAR_ADD_1 = 0x10; // Straight Ahead
-const int16_t LiDAR_ADD_2 = 0x25; // Swivel motor
-const int16_t LiDAR_ADD_3 = 0x15; // 3rd Luna
-uint16_t LiDAR_frame_rate = 0x00;
-const int LiDAR_1_signal = 48;
-const int LiDAR_2_signal = 47;
-const int LED_RING_pin = 21;  // LiDAR 3 Signal on PCB
-
-
-// Motor Pins
-// S2
-const int R_Stepper_STEP_PIN = 17;
-const int R_Stepper_DIR_PIN = 18;
-const int R_Stepper_ENABLE_PIN = 16;
-
-// S1
-const int L_Stepper_STEP_PIN = 15;
-const int L_Stepper_DIR_PIN = 7;
-const int L_Stepper_ENABLE_PIN = 6;
-
-const int MS1_pin = 42;
-const int MS2_pin = 41;
-const int MS3_pin = 40;
-
-// Slave MCU
-const uint8_t slave_ADDR = 0x55;
-
-//  Line Sensors
-const int L_IR_PIN = 14;            // IR1 on board pinout
-const int BATTERY_LEVEL_PIN = 10;   // IR2 on board pinout
-const int C_BUMP_PIN = 38;          // IR3 on board pinout
-const int R_IR_PIN = 39;            // IR4 on board pinout
-
 Battery battery(8000, 13000, BATTERY_LEVEL_PIN);//3041
 
-//  Limit Switches
-const int R_BUMP_PIN = 4; // LIM1 on board pinout
-const int L_BUMP_PIN = 5; // LIM2 on board pinout
 
 const int obstciale_radius = 200;
-
-//  SPI
-const int MISO_PIN = 13;
-const int MOSI_PIN = 11;
-const int SPI_SCK_PIN = 12;
 
 //  Time Variables
 unsigned long previousMillis_Servo = 0;
@@ -214,3 +163,5 @@ void I2C_Scan(TwoWire &I2C) {
 
   delay(5000);           // wait 5 seconds for next scan
 }
+
+#endif
