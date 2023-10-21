@@ -63,12 +63,14 @@ float x_pos = 0;
 float y_pos = 0;
 
 timing servoMillis;
-ServoState servoState;
+int servoState;
 Servo servo;
 bool servo_inc = true;
 int servo_LIM_H = 130;
 int servo_LIM_L = 50;
 int servo_speed = 5;
+unsigned long ServoPreviousMillis = 0;
+unsigned long ServoDelay = 50;  // Delay in milliseconds;
 int servo_step_size = 1;
 int servo_pos = 90;
 int targetPos = 90;

@@ -1,53 +1,70 @@
 #include <main.h>
+#include <freertos/FreeRTOS.h>
+
+
+
+void task1code(void *pvParameter)
+{
+  for (;;)
+  {
+    servo_loop();
+  }
+}
 
 void setup()
 {
-    Serial.begin(115200);
-    if(!LittleFS.begin()){
+  Serial.begin(115200);
+    TaskHandle_t Task1;
+BaseType_t result = xTaskCreatePinnedToCore(
+    task1code,
+    "Task1",
+    10000,
+    NULL,
+    1,
+    &Task1,
+    0);
+
+if (result != pdPASS) {
+  Serial.println("Error creating task!");
+}
+  if (!LittleFS.begin())
+  {
+
     Serial.println("An Error has occurred while mounting LittleFS");
     return;
   }
 
-  DC_setup();
 
-  OTA_setup();
-  
-  //servo_setup();
+
+  // Serv
+  DC_setup();
+  //OTA_setup();
+  servo_setup();
 
   Wire.begin(slave_ADDR);
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
   // servoState = RUN;
   lcd_setup();
+
   // while(1){
-  //   servo.write(120);
+  // servo.write(120);
   //   WebSerial.println(servo.read());
   //   delay(1000);
   //   servo.write(50);
   //   WebSerial.println(servo.read());
   //   delay(1000);
   // }
-  //WebSerial.println("End of SetUp");
+  // WebSerial.println("End of SetUp");
 }
-
+int pos = 90;
 void loop()
 {
-  // servo_loop();
-  lcd_loop();
-  // int pos = 90;
-  // for(pos = pos; pos < 130; pos++){
-  //   servo.attach(SERVO_pin);
-  //   servo.write(pos);
-  //   servo.detach();
-  //   delay(20);
-  // }
-  // for(pos = pos; pos > 50; pos++){
-  //   servo.attach(SERVO_pin);
-  //   servo.write(pos);
-  //   servo.detach();
-  //   delay(20);
-  // }
+
+  // OTA_loop();
   DC_loop();
+  lcd_loop();
+
 }
 
 void receiveEvent(int numBytes)
@@ -237,12 +254,10 @@ void DC_loop()
 {
   digitalWrite(LDC_pin, (int)is_L_DC_ON);
   digitalWrite(RDC_pin, (int)is_R_DC_ON);
-
 }
 
 void servo_setup()
 {
-  pinMode(SERVO_pin, OUTPUT);
   servo.attach(SERVO_pin);
   servo_pos = 90;
   servo.write(servo_pos);
@@ -251,36 +266,20 @@ void servo_setup()
 
 void servo_loop()
 {
-  servoMillis.current = millis();
+    for(servo_pos = servo_pos; servo_pos <= servo_LIM_H; servo_pos++){
+    servo.write(servo_pos);
+    delay(servo_speed);
+  }
+  for(servo_pos = servo_pos; servo_pos > servo_LIM_L; servo_pos--){
+    servo.write(servo_pos);
+    delay(servo_speed);
+  }
   switch (servoState)
   {
 
   case RUN:
   {
 
-    if (servoMillis.current - servoMillis.previous >= servo_speed)
-    {
-      servoMillis.previous = servoMillis.current;
-
-      if (servo_pos <= servo_LIM_L)
-      {
-        servo_inc = true;
-      }
-      if (servo_pos >= servo_LIM_H)
-      {
-        servo_inc = false;
-      }
-      if (servo_inc)
-      {
-        servo_pos += servo_step_size;
-      }
-      else
-      {
-        servo_pos -= servo_step_size;
-      }
-
-      servo.write(servo_pos);
-    }
   }
   break;
 
@@ -303,4 +302,5 @@ void servo_loop()
   }
   break;
   }
+
 }
