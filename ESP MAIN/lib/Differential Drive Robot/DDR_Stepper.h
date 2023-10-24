@@ -24,7 +24,9 @@ enum MoveState
   ERROR,
   BACK_OFF,
   RUNNING,
-  WAIT
+  WAIT,
+  RELATIVE_TURN,
+  RELATIVE_MOVE
 };
 
 enum unit
@@ -60,13 +62,17 @@ struct Move
   Move *next;
 };
 
+
 class DDR_Control
 {
 
 private:
   Move *head = nullptr;
   Move *tail = nullptr;
-  
+
+  Move *relative_head = nullptr;
+  Move *relative_tail = nullptr;
+  bool relative_backwards = false;
 
   AS5600_ENC R_ENCODER;
   AS5600_ENC L_ENCODER;
@@ -84,7 +90,6 @@ private:
   byte MS2_pin = 0;
   byte MS3_pin = 0;
 
-  
   long acceleration;
   float wheel_circumfrence_mm;
   int steps_per_rev;
@@ -107,10 +112,9 @@ private:
   long L_direction = 0;
   long L_CurrentSpeed = 0;
   long L_Speed_SPS = 0;
-  
+
   long L_step_time = 0;
   bool L_STEP_MOVING = false;
-
 
   float R_ENC_PREVIOUS = 0;
   float R_ENC_TOTAL_REV = 0;
@@ -118,8 +122,7 @@ private:
   long R_direction = 0;
   long R_CurrentSpeed = 0;
   long R_Speed_SPS = 0;
-  
-  
+
   bool R_STEP_MOVING = false;
 
   float leftWheelSpeed = 2000;
@@ -134,7 +137,6 @@ private:
   unsigned long encoder_current_millis = 0;
   unsigned long encoder_previous_millis = 0;
 
-
   const float rotationConstant = 171.931 / 10; // 158.3;//160.49877; // Must be adjusted based on wheel distance and mounting points
 
   //  Position Variables  //--------
@@ -144,7 +146,6 @@ private:
   pos target;
   float L_prev_dist = 0;
   float R_prev_dist = 0;
-  
 
   bool L_MOVE_DONE;
   bool R_MOVE_DONE;
@@ -160,19 +161,12 @@ private:
   float target_cord_RS = 0;
 
   // Stepper Functions
+  void update_stepper_DIR_pin();
+  void moveSteppers();
   void L_setSpeed_SPS(long SPS);
   void R_setSpeed_SPS(long SPS);
   void L_setSpeed_MMPS(float MMPS);
   void R_setSpeed_MMPS(float MMPS);
-  void setAcceleration_SPSPS(long SPSPS);
-  void L_setTarget_POS(float Target_MM);
-  void R_setTarget_POS(float Target_MM);
-  bool L_stepper_target_reached();
-  bool R_stepper_target_reached();
-  void setSpeedInKMH(float speed);
-  
-  void setAccelerationInKMHH(float speed);
-  void setAccelerationInMMSS(float speed);
   void resumeStepper(motor select);
   void stopStepper(motor select);
 
@@ -181,22 +175,15 @@ private:
   void updatePosition(float deltaX, float deltaY);
   void updatePosition(float deltaOrientation);
 
+  //  Calculation Functions   //-----------
   float calc_orientation(float target_X, float target_y);
   float calc_delta_Y(float straight_line_dist);
   float calc_delta_X(float straight_line_dist);
   float calc_diagonal_distance(float target_x, float target_y);
   float get_delta_theta(float target);
 
-
-
 public:
-
   MPU9250 mpu;
-
-  volatile float L_Current_POS_MM = 0;
- volatile float L_Target_POS_MM = 0;
-volatile float R_Current_POS_MM = 0;
- volatile float R_Target_POS_MM = 0;
 
   float defaultSpeed_MMS = 0;
 
@@ -205,62 +192,55 @@ volatile float R_Current_POS_MM = 0;
   float obsticale_xpos;
   float obsticale_ypos;
 
- MoveState movementState = IDLE;
+  MoveState movementState = IDLE;
 
-  void setSpeedInMMS(float speed);
-
-
+  //  Constructor   //-----------
   DDR_Control(float wheel_circumfrence, float wheel_distance, int MICRO_STEP, int STEPPER_STEP_COUNT, int GEAR_RATIO);
-  void loop();
+  void begin(unit speed_units, float speed);
+
   //  Move Buffer   //-----------
   void enqueueMove(float x, float y);
   void insertMoveBeforeCurrent(float x, float y);
   bool executeMoves();
   void clearMoves();
 
+  void relative_enqueueMove(float x, float y);
+  void relative_insertMoveBeforeCurrent(float x, float y);
+  bool relative_executeMoves();
+  void relative_clearMoves();
+
+  void setUp360();
   //  Positioning   //-----------
+  unsigned long previousMillis___POSE = 0;
   void updatePose();
   void setPosition(float angle);
   void setPosition(float xPos, float yPos);
   void setPosition(float xPos, float yPos, float angle);
-
-  void update_stepper_DIR_pin();
-  void moveSteppers();
-  void enableStepper(motor select);
-  void disableStepper(motor select);
-
-  void UpdatePosFromEncoders(long refresh_rate);
-  void calibrateMPU();
-  void print_MPU_calibration();
-
-  
-  void followHeading(float heading, float speedMMS);
-
-  void begin(unit speed_units, float speed);
-  void setUpMotors(byte leftMotorStepPin, byte leftMotorDirPin, byte leftMotorEnablePin, byte rightMotorStepPin, byte rightMotorDirPin, byte rightMotorEnablePin, byte MS1Pin, byte MS2Pin, byte MS3Pin);
-  void setUpMotors(byte leftMotorStepPin, byte leftMotorDirPin, byte leftMotorEnablePin, byte rightMotorStepPin, byte rightMotorDirPin, byte rightMotorEnablePin);
-  void setUpEncoders(TwoWire &I2C_left, TwoWire &I2C_right);
-  void resetEncoders(motor selector);
-  float getEncoderAngle(motor identifier);
-
-
-
-  void setUpMove(float target_x, float target_y);
-  void setUpTurn(float TargetOrientation);
-  void setUpTurnDeg(float TargetOrientation);
   float getXCoordinate() const;
   float getYCoordinate() const;
   float getOrientation() const;
 
-  float L_getCurrentPos_CM(void);
+  //  Stepper Control  //-----------
+  void setUpMotors(byte leftMotorStepPin, byte leftMotorDirPin, byte leftMotorEnablePin, byte rightMotorStepPin, byte rightMotorDirPin, byte rightMotorEnablePin, byte MS1Pin, byte MS2Pin, byte MS3Pin);
+  void setUpMotors(byte leftMotorStepPin, byte leftMotorDirPin, byte leftMotorEnablePin, byte rightMotorStepPin, byte rightMotorDirPin, byte rightMotorEnablePin);
+  void enableStepper(motor select);
+  void disableStepper(motor select);
   float L_getCurrentSpeed_MMS(void);
-  float R_getCurrentPos_CM(void);
   float R_getCurrentSpeed_MMS(void);
+  void setSpeedInMMS(float speed);
+  void setSpeedInKMH(float speed);
 
-  void moveTo(float targetX, float targetY);
-  void setupMoveForward(float distance);
-  bool processMovement();
-  bool motionComplete();
+  //  Encoder Control  //-----------
+  void setUpEncoders(TwoWire &I2C_left, TwoWire &I2C_right);
+  void resetEncoders(motor selector);
+  float getEncoderAngle(motor identifier);
+
+  void calibrateMPU();
+  void print_MPU_calibration();
+
+  //  Movement Control  //-----------
+  void setUpMove(float target_x, float target_y);
+  void setUpTurn(float target_a);
 
   float toDeg(float rad);
   float toRad(float deg);
@@ -268,13 +248,10 @@ volatile float R_Current_POS_MM = 0;
   void stop();
   void resume();
 
-  bool add_move(float targetX, float targetY);
-  bool add_move(float targetA);
-
+  void loop();
 
   unsigned long backOff_current_millis = 0;
   unsigned long backOff_previous_millis = 0;
 };
-
 
 #endif // EasyRobot_H

@@ -68,11 +68,12 @@ Servo servo;
 bool servo_inc = true;
 int servo_LIM_H = 130;
 int servo_LIM_L = 50;
-int servo_speed = 5;
+int servo_speed = 15;
+int servo_step_size = 5;
 unsigned long ServoPreviousMillis = 0;
 unsigned long ServoDelay = 50;  // Delay in milliseconds;
-int servo_step_size = 1;
-int servo_pos = 90;
+
+volatile int servo_pos = 90;
 int targetPos = 90;
 int charge_level = 0;
 

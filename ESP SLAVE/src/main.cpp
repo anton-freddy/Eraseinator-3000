@@ -1,51 +1,50 @@
 #include <main.h>
 #include <freertos/FreeRTOS.h>
 
-
-
 void task1code(void *pvParameter)
 {
   for (;;)
   {
-    servo_loop();
+    lcd_loop();
   }
 }
 
 void setup()
 {
   Serial.begin(115200);
-    TaskHandle_t Task1;
-BaseType_t result = xTaskCreatePinnedToCore(
-    task1code,
-    "Task1",
-    10000,
-    NULL,
-    1,
-    &Task1,
-    0);
+  TaskHandle_t Task1;
 
-if (result != pdPASS) {
-  Serial.println("Error creating task!");
-}
+  // Serv
+  DC_setup();
+  // OTA_setup();
+  servo_setup();
+
+  Wire.begin(slave_ADDR);
+  Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
+  servoState = 1;
+  lcd_setup();
+
+  // BaseType_t result = xTaskCreatePinnedToCore(
+  //   task1code,
+  //   "Task1",
+  //   10000,
+  //   NULL,
+  //   1,
+  //   &Task1,
+  //   0);
+
+  // if (result != pdPASS) {
+  //   Serial.println("Error creating task!");
+  // } else {
+  //   Serial.println("Task created successfully");
+  // }
   if (!LittleFS.begin())
   {
 
     Serial.println("An Error has occurred while mounting LittleFS");
     return;
   }
-
-
-
-  // Serv
-  DC_setup();
-  //OTA_setup();
-  servo_setup();
-
-  Wire.begin(slave_ADDR);
-  Wire.onReceive(receiveEvent);
-  Wire.onRequest(requestEvent);
-  // servoState = RUN;
-  lcd_setup();
 
   // while(1){
   // servo.write(120);
@@ -56,28 +55,70 @@ if (result != pdPASS) {
   //   delay(1000);
   // }
   // WebSerial.println("End of SetUp");
+
+  // servo.write(90);
+  // while(1);
 }
 int pos = 90;
+unsigned long lcd_update_millis = 0;
+// bool servo_inc = true;
 void loop()
 {
+  servo.attach(SERVO_pin);
+  if (servo_pos >= servo_LIM_H)
+  {
+    servo_inc = false;
+  }
+  else if (servo_pos <= servo_LIM_L)
+  {
+    servo_inc = true;
+  }
+  if (servo_inc)
+  {
+    servo_pos += servo_step_size;
+  }
+  else
+  {
+    servo_pos -= servo_step_size;
+  }
+  servo.write(servo_pos);
+  Serial.println("Servo pos: " + (String)servo_pos);
 
+  //   //lcd_loop();
+  //   DC_loop();
+  delay(50);
+  //servo_loop();
+  //  DC_loop();
+
+  //  if(millis()- lcd_update_millis > 1000){
+  //    lcd_update_millis = millis();
+  //   //  update_LCD_charge_lvl(charge_level);
+  //   //  update_LCD_x_pos(x_pos);
+  //   //  update_LCD_y_pos(y_pos);
+  //   //  update_LCD_a_pos(a_pos);
+  //   lcd_loop();
+  //  }
+  // servo.attach(SERVO_pin);
+  // servo.write(135);
+  // delay(1000);
+  // servo.write(45);
+  // delay(1000);
   // OTA_loop();
-  DC_loop();
-  lcd_loop();
-
+  // DC_loop();
 }
 
 void receiveEvent(int numBytes)
 {
-  requestREG = Wire.read(); // Read the register address
 
+  requestREG = Wire.read(); // Read the register address
+  Serial.println("Receive Event: "+(String)requestREG);
   if (numBytes > 1)
   {
     switch (requestREG)
     {
     case REG_SERVO_POS:
     {
-      targetPos = (int)Wire.read();
+      servo_pos = (int)Wire.read();
       WebSerial.println("REG_SERVO_POS RECEIVE EVENT - Received POS: " + (String)targetPos);
       return;
     }
@@ -168,7 +209,9 @@ void requestEvent()
   {
   case REG_SERVO_POS:
   {
-    Wire.write(servo_pos);
+    Serial.println("in request funcx");
+    uint8_t data = servo_pos;
+    Wire.write(&data, sizeof(uint8_t));
   }
   break;
 
@@ -259,48 +302,64 @@ void DC_loop()
 void servo_setup()
 {
   servo.attach(SERVO_pin);
-  servo_pos = 90;
+  servo_pos = 135;
   servo.write(servo_pos);
-  servoState = CENTER;
+  delay(1000);
+  servo.write(45);
+  servoState = RUN;
 }
 
+unsigned long servoPrevMilli = 0;
 void servo_loop()
 {
-    for(servo_pos = servo_pos; servo_pos <= servo_LIM_H; servo_pos++){
-    servo.write(servo_pos);
-    delay(servo_speed);
-  }
-  for(servo_pos = servo_pos; servo_pos > servo_LIM_L; servo_pos--){
-    servo.write(servo_pos);
-    delay(servo_speed);
-  }
-  switch (servoState)
+  // for(servo_pos = servo_pos; servo_pos <= servo_LIM_H; servo_pos++){
+  //   servo.write(servo_pos);
+  //   delay(servo_speed);
+  // }
+  // for(servo_pos = servo_pos; servo_pos > servo_LIM_L; servo_pos--){
+  //   servo.write(servo_pos);
+  //   delay(servo_speed);
+  // }
+  servo.attach(SERVO_pin);
+  Serial.println("LOOP");
+  if (servoState == 1)
   {
-
-  case RUN:
-  {
-
-  }
-  break;
-
-  case PAUSE:
-  {
-    if (servo.read() != servo_pos)
+    if (millis() - servoPrevMilli > servo_speed)
     {
+      servoPrevMilli = millis();
+      if (servo_pos >= servo_LIM_H)
+      {
+        servo_inc = false;
+      }
+      else if (servo_pos <= servo_LIM_L)
+      {
+        servo_inc = true;
+      }
+      if (servo_inc)
+      {
+        servo_pos += servo_step_size;
+      }
+      else
+      {
+        servo_pos -= servo_step_size;
+      }
       servo.write(servo_pos);
     }
+    //   for(servo_pos = servo_pos; servo_pos <= servo_LIM_H; servo_pos++){
+    //   servo.write(servo_pos);
+    //   delay(servo_speed);
+    // }
+    // for(servo_pos = servo_pos; servo_pos > servo_LIM_L; servo_pos--){
+    //   servo.write(servo_pos);
+    //   delay(servo_speed);
+    // }
   }
-  break;
-
-  case CENTER:
+  else if (servoState == 0)
   {
-    targetPos = 90;
-    if (servo.read() != targetPos)
-    {
-      servo.write(targetPos);
-    }
+    servo.write(90);
   }
-  break;
+  else
+  {
+    servo.write(servo_pos);
   }
-
 }

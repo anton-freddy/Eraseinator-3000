@@ -54,6 +54,7 @@ void lcd_setup()
   delay(5000);
   LCD.fillScreen(GC9A01A_BLACK);
   print_graphics(main_graphic);
+  testText();
 #if defined(TFT_BL)
   pinMode(TFT_BL, OUTPUT);
   digitalWrite(TFT_BL, HIGH); // Backlight on
@@ -82,23 +83,23 @@ unsigned long testText()
 
   unsigned long start = micros();
 
-  LCD.setCursor(70, 115);
+  LCD.setCursor(60, 115);
   LCD.setTextColor(GC9A01A_WHITE);
   LCD.setTextSize(1);
   LCD.setFont(&FreeSansBold12pt7b);
-  LCD.println("X:" + (String)lcd_data.x_pos + " Y:" + (String)lcd_data.y_pos);
+  LCD.println("RUNNING");
 
   LCD.setCursor(55, 170);
   LCD.setTextColor(GC9A01A_WHITE);
   LCD.setTextSize(1);
   LCD.setFont(&FreeSansBold12pt7b);
-  LCD.println((String)lcd_data.charge_lvl + "%");
+  LCD.println("100%");
 
   LCD.setCursor(130, 170);
   LCD.setTextColor(GC9A01A_WHITE);
   LCD.setTextSize(1);
   LCD.setFont(&FreeSansBold12pt7b);
-  LCD.println(lcd_data.a_pos);
+  LCD.println("15%");
 
   return micros() - start;
 }

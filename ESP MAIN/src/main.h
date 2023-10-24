@@ -8,7 +8,10 @@
 #include <string>
 #include <math.h>
 #include <iostream>
-#include <web_connection.h>
+//#include <web_connection.h>
+#include <web_js.h>
+//#include <web_app.h>
+//#include <web_ui.h>
 
 // Libaries
 #include <Wire.h>
@@ -28,6 +31,11 @@ const int MICROSTEP = 2;
 const int STEPPER_STEP_COUNT = 200;
 const int GEAR_RATIO = 2;
 // const int STEPS_PER_REV;
+
+const float LiDAR_offset_center = 138;  // Dist in mm
+const float LiDAR_tolerance_offset = 0.0;         // Dist in mm
+const float LiDAR_servo_distance = 39;          // Servo swivel to LiDAR dist in mm
+const float LiDAR_servo_offset_center = 100; // Servo swivel point to center of robot in mm
 
 Battery battery(8000, 13000, BATTERY_LEVEL_PIN);//3041
 
@@ -102,7 +110,11 @@ void bump_ISR_R();
 void setupBumpers();
 void setBumpBackOFF();
 void tickServo();
+float get_servo_angle();
+float get_servo_global_angle();
 void setDCmotor(int motor_select, bool active);
+void send_lidar1_obj(void);
+void send_lidar2_obj(void);
 
 bool bump_triggred = false;
 Servo servo;
@@ -163,5 +175,9 @@ void I2C_Scan(TwoWire &I2C) {
 
   delay(5000);           // wait 5 seconds for next scan
 }
+
+TaskHandle_t Task1;
+
+
 
 #endif

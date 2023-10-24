@@ -1,6 +1,15 @@
 #include <DDR_Stepper.h>
 
-//--  Constructor
+/*******************************************************
+  Method: Constructor
+  In: wheel_circumfrence (mm)
+      wheel_distance (mm)
+      MICRO_STEP (1, 2, 4, 8, 16, 32)
+      STEPPER_STEP_COUNT (200)
+      GEAR_RATIO (1, 2, 4, 8, 16, 32)
+  Out: none
+  Description: Constructor for the DDR_Control class
+*******************************************************/
 DDR_Control::DDR_Control(float wheel_circumfrence, float wheel_distance, int MICRO_STEP, int STEPPER_STEP_COUNT, int GEAR_RATIO)
 {
   steps_per_rev = MICRO_STEP * STEPPER_STEP_COUNT * 1.0 / GEAR_RATIO;
@@ -16,8 +25,12 @@ DDR_Control::DDR_Control(float wheel_circumfrence, float wheel_distance, int MIC
   target.x_pos = 0;
 }
 
-//--  Stepper Movement -----------------------------------------
-
+/*******************************************************
+  Method: update stepper DIR pin
+  In: none
+  Out: none
+  Description: Updates the DIR pin for the stepper motors
+*******************************************************/
 void DDR_Control::update_stepper_DIR_pin()
 {
   switch (L_direction)
@@ -50,166 +63,12 @@ void DDR_Control::update_stepper_DIR_pin()
   }
 }
 
-float DDR_Control::get_delta_theta(float target)
-{
-  float angleDiff = target - getOrientation();
-  if (angleDiff > PI)
-  {
-    return angleDiff - (2 * PI);
-  }
-  else if (angleDiff < -PI)
-  {
-    return angleDiff + (2 * PI);
-  }
-  else
-  {
-    return angleDiff;
-  }
-}
-
-void DDR_Control::resumeStepper(motor select)
-{
-  switch (select)
-  {
-  case both:
-    L_STEP_MOVING = true;
-    R_STEP_MOVING = true;
-    break;
-  case left:
-    L_STEP_MOVING = true;
-    break;
-
-  case right:
-    R_STEP_MOVING = true;
-    break;
-  default:
-    break;
-  }
-}
-
-void DDR_Control::stopStepper(motor select)
-{
-  switch (select)
-  {
-  case both:
-    L_STEP_MOVING = false;
-    R_STEP_MOVING = false;
-    break;
-  case left:
-    L_STEP_MOVING = false;
-    break;
-
-  case right:
-    R_STEP_MOVING = false;
-    break;
-  default:
-    break;
-  }
-}
-
-bool DDR_Control::L_stepper_target_reached()
-{
-  switch (L_direction)
-  {
-  case 1:
-    if (L_Current_POS_MM < L_Target_POS_MM)
-    {
-      return false;
-    }
-    // else if ((L_Current_POS_MM +1) > L_Target_POS_MM)
-    // {
-    //   L_direction = L_direction * -1;
-    //   return false;
-    // }
-    else if (L_Current_POS_MM >= L_Target_POS_MM)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-    break;
-
-  case -1:
-    if (L_Current_POS_MM > L_Target_POS_MM)
-    {
-      return false;
-    }
-    // else if ((L_Current_POS_MM -1) < L_Target_POS_MM)
-    // {
-    //   L_direction = L_direction * -1;
-    //   return false;
-    // }
-    else if (L_Current_POS_MM <= L_Target_POS_MM)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-    break;
-
-  default:
-    send_ERROR(LEFT_STEPPER, 0x01);
-    return false;
-    break;
-  }
-}
-bool DDR_Control::R_stepper_target_reached()
-{
-  switch (R_direction)
-  {
-  case 1:
-    if (R_Current_POS_MM < R_Target_POS_MM)
-    {
-      return false;
-    }
-    // else if (R_Current_POS_MM > R_Target_POS_MM)
-    // {
-    //   R_direction = -1 * R_direction;
-    //   return false;
-    // }
-    else if (R_Current_POS_MM >= R_Target_POS_MM)
-    {
-      return true;
-    }
-    else
-    {
-
-      return false;
-    }
-    break;
-
-  case -1:
-    if (R_Current_POS_MM > R_Target_POS_MM)
-    {
-      return false;
-    }
-    // else if (R_Current_POS_MM < R_Target_POS_MM)
-    // {
-    //   R_direction = -1 * R_direction;
-    //   return false;
-    // }
-    else if (R_Current_POS_MM >= R_Target_POS_MM)
-    {
-      return true;
-    }
-    else
-    {
-
-      return false;
-    }
-    break;
-
-  default:
-    send_ERROR(RIGHT_STEPPER, 0x01);
-    return false;
-    break;
-  }
-}
-
+/*******************************************************
+  Method:Move Steppers
+  In: none
+  Out: none
+  Description: Generates the step pulses for the stepper motors, function must be in continous loop with no blocking code
+*******************************************************/
 void DDR_Control::moveSteppers()
 {
   update_stepper_DIR_pin();
@@ -221,7 +80,7 @@ void DDR_Control::moveSteppers()
 
   if (L_STEP_MOVING)
   {
-    // enableStepper(left);
+    //enableStepper(left);
     unsigned long current_time = micros();
     // long current_time = millis();
     if ((current_time - L_previous_time) >= L_step_time)
@@ -234,7 +93,7 @@ void DDR_Control::moveSteppers()
 
   if (R_STEP_MOVING)
   {
-    // enableStepper(right);
+    //enableStepper(right);
     unsigned long current_time = micros();
     // long current_time = millis();
     if ((current_time - R_previous_time) >= R_step_time)
@@ -244,12 +103,16 @@ void DDR_Control::moveSteppers()
     }
     digitalWrite(R_S_pin, LOW);
   }
-  else
-  {
-    // disableStepper(right);
-  }
+
+  //disableStepper(both);
 }
 
+/*******************************************************
+  Method: Set speed for left stepper
+  In: speed (steps/s)
+  Out: none
+  Description: Sets the speed of the left stepper motor
+*******************************************************/
 void DDR_Control::L_setSpeed_SPS(long SPS)
 {
   if (SPS < 0)
@@ -262,6 +125,13 @@ void DDR_Control::L_setSpeed_SPS(long SPS)
   }
   L_Speed_SPS = SPS;
 }
+
+/*******************************************************
+  Method: Set speed for right stepper
+  In: speed (steps/s)
+  Out: none
+  Description: Sets the speed of the right stepper motor
+*******************************************************/
 void DDR_Control::R_setSpeed_SPS(long SPS)
 {
   if (SPS < 0)
@@ -274,6 +144,13 @@ void DDR_Control::R_setSpeed_SPS(long SPS)
   }
   R_Speed_SPS = SPS;
 }
+
+/*******************************************************
+  Method: Set speed for left stepper
+  In: speed (mm/s)
+  Out: none
+  Description: Sets the speed of the left stepper motor
+*******************************************************/
 void DDR_Control::L_setSpeed_MMPS(float MMPS)
 {
   leftWheelSpeed = abs(MMPS);
@@ -286,6 +163,13 @@ void DDR_Control::L_setSpeed_MMPS(float MMPS)
     L_direction = -1;
   }
 }
+
+/*******************************************************
+  Method: Set speed for right stepper
+  In: speed (mm/s)
+  Out: none
+  Description: Sets the speed of the right stepper motor
+*******************************************************/
 void DDR_Control::R_setSpeed_MMPS(float MMPS)
 {
   rightWheelSpeed = abs(MMPS);
@@ -299,61 +183,94 @@ void DDR_Control::R_setSpeed_MMPS(float MMPS)
   }
 }
 
-float DDR_Control::L_getCurrentSpeed_MMS(void)
+/*******************************************************
+  Method: Resume Steppers
+  In: motor select (left, right, both)
+  Out: none
+  Description: Enables the stepper motors
+*******************************************************/
+void DDR_Control::resumeStepper(motor select)
 {
-  return leftWheelSpeed;
-}
+  switch (select)
+  {
+  case both:
+    L_STEP_MOVING = true;
+    R_STEP_MOVING = true;
+    enableStepper(both);
+    break;
+  case left:
+    L_STEP_MOVING = true;
+    enableStepper(left);
+    break;
 
-float DDR_Control::R_getCurrentSpeed_MMS(void)
-{
-  return rightWheelSpeed;
-}
-
-void DDR_Control::L_setTarget_POS(float Target_MM)
-{
-  L_Target_POS_MM = Target_MM;
-  L_setSpeed_MMPS(defaultSpeed_MMS);
-  if (Target_MM < 0)
-  {
-    L_direction = 1;
-  }
-  else
-  {
-    L_direction = -1;
-  }
-}
-
-void DDR_Control::R_setTarget_POS(float Target_MM)
-{
-  R_Target_POS_MM = Target_MM;
-  R_setSpeed_MMPS(defaultSpeed_MMS);
-  if (Target_MM < 0)
-  {
-    R_direction = 1;
-  }
-  else
-  {
-    R_direction = -1;
+  case right:
+    R_STEP_MOVING = true;
+    enableStepper(right);
+    break;
+  default:
+    break;
   }
 }
 
-//--  Private Functions ----------------------------------------
+/*******************************************************
+  Method: Stop Steppers
+  In: motor select (left, right, both)
+  Out: none
+  Description: Disables the stepper motors
+*******************************************************/
+void DDR_Control::stopStepper(motor select)
+{
+  switch (select)
+  {
+  case both:
+    L_STEP_MOVING = false;
+    R_STEP_MOVING = false;
+    disableStepper(both);
+    break;
+  case left:
+    L_STEP_MOVING = false;
+    disableStepper(left);
+    break;
 
-// Updates the position of the robot, values passed should be delta values, NOT target values
+  case right:
+    R_STEP_MOVING = false;
+    disableStepper(right);
+    break;
+  default:
+    break;
+  }
+}
+
+/*******************************************************
+  Method: Update Position
+  In: change in pos (deltaX, deltaY, deltaOrientation)
+  Out: none
+  Description: Updates the position by the change in position
+*******************************************************/
 void DDR_Control::updatePosition(float deltaX, float deltaY, float deltaOrientation)
 {
   updatePosition(deltaX, deltaY);
   updatePosition(deltaOrientation);
 }
 
-// Updates the position of the robot, values passed should be delta values, NOT target values
+/*******************************************************
+  Method: Update Position
+  In: change in pos (deltaX, deltaY)
+  Out: none
+  Description: Updates the position by the change in position
+*******************************************************/
 void DDR_Control::updatePosition(float deltaX, float deltaY)
 {
   x_pos += deltaX;
   y_pos += deltaY;
 }
 
-// Updates the position of the robot, values passed should be delta values, NOT target values
+/*******************************************************
+  Method: Update Position
+  In: change in pos (deltaOrientation)
+  Out: none
+  Description: Updates the position by the change in position
+*******************************************************/
 void DDR_Control::updatePosition(float deltaOrientation)
 {
   a_pos += deltaOrientation;
@@ -371,134 +288,15 @@ void DDR_Control::updatePosition(float deltaOrientation)
   }
 }
 
-unsigned long previousMillis___POSE = 0;
-
-void DDR_Control::updatePose()
-{
-
-  float L_ENC_READ = getEncoderAngle(left);
-  float R_ENC_READ = getEncoderAngle(right);
-  unsigned long currentTime = millis();
-  float elapsedTime = (currentTime - pose_previousTime) / 1000.0; // Convert to seconds
-
-  // Read encoder values
-
-  float L_delta_theta = -1 * (L_ENC_READ - L_ENC_PREVIOUS);
-  float R_delta_theta = -1 * (R_ENC_READ - R_ENC_PREVIOUS);
-  L_ENC_PREVIOUS = L_ENC_READ;
-  R_ENC_PREVIOUS = R_ENC_READ;
-  // Calculate the change in angle accounting for overflow
-  if (L_delta_theta > 180)
-  {
-    L_delta_theta -= 360.0; // Account for counter-clockwise movement
-  }
-  else if (L_delta_theta < -180)
-  {
-    L_delta_theta += 360.0; // Account for clockwise movement
-  }
-
-  if (R_delta_theta > 180)
-  {
-    R_delta_theta -= 360.0; // Account for counter-clockwise movement
-  }
-  else if (R_delta_theta < -180)
-  {
-    R_delta_theta += 360.0; // Account for clockwise movement
-  }
-  float leftDist = (L_delta_theta / 360.0) * (wheel_circumfrence_mm) * (float)(1.0 / gear_ratio);  // Function to get left encoder distance change in cm
-  float rightDist = (R_delta_theta / 360.0) * (wheel_circumfrence_mm) * (float)(1.0 / gear_ratio); // Function to get right encoder distance change in cm
-
-  L_Current_POS_MM += leftDist;
-  R_Current_POS_MM += rightDist;
-  // Calculate wheel velocities
-  float leftVel = (leftDist /* - L_prev_dist */) / elapsedTime;
-  float rightVel = (rightDist /* - R_prev_dist*/) / elapsedTime;
-
-  // Calculate robot linear and angular velocities
-  float linearVel = (leftVel + rightVel) / 2.0;
-  float angularVel = (leftVel - rightVel) / (wheel_distance_mm);
-
-  // Update robot pose
-  updatePosition(angularVel * elapsedTime);
-  updatePosition((linearVel * sin(getOrientation()) * elapsedTime), (linearVel * cos(getOrientation()) * elapsedTime));
-
-  // Store current values for next iteration
-  L_prev_dist = leftDist;
-  R_prev_dist = rightDist;
-  pose_previousTime = currentTime;
-
-  // Serial.println("Elapsed: " + (String)elapsedTime);
-  // Serial.println("Left Distance: " + (String)leftDist);
-  // Serial.println("Right Distance: " + (String)rightDist);
-  // Serial.println("Linear Vel: " + (String)linearVel);
-  // Serial.println("Angular Vel: " + (String)angularVel);
-  // Serial.println("Orientation: " + (String)getOrientation());
-  // Serial.println("delta Theta: " + (String)(angularVel * elapsedTime));
-  // Serial.println("delta X: " + (String)(linearVel * cos(getOrientation()) * elapsedTime));
-  // Serial.println("delta Y: " + (String)(linearVel * sin(getOrientation()) * elapsedTime));
-
-  unsigned long currentMillis = millis();
-  if (currentMillis > previousMillis___POSE + 1000)
-  {
-    previousMillis___POSE = currentMillis;
-    String ArrayLine;
-    ArrayLine = (String)millis() + "\t";
-    ArrayLine += "X: " + (String)getXCoordinate() + " Y: " + (String)getYCoordinate() + " A: " + (String)getOrientation();
-    // ArrayLine += "\nLeft Step Time: " + (String)L_step_time + " Right Step Time: " + (String)R_step_time;
-    Serial.println(ArrayLine);
-    // Serial.println("L: " + (String)L_delta_theta);
-    // Serial.println("R: " + (String)R_delta_theta);
-  }
-}
-
-// Proportional control gain for heading adjustment
-const float headingKp = 1.0;
-
-// Desired heading in radians (0 to 2π)
-float desiredHeading = 0.0;
-
-void DDR_Control::followHeading(float heading, float speedMMS)
-{
-  // Update desired heading
-  desiredHeading = heading;
-
-  // Calculate the heading error
-  float headingError = desiredHeading - getOrientation();
-
-  // Adjust the heading error to be in the range [-π, π]
-  while (headingError > PI)
-  {
-    headingError -= 2 * PI;
-  }
-  while (headingError < -PI)
-  {
-    headingError += 2 * PI;
-  }
-
-  // Calculate the angular velocity using proportional control
-  float angularVel = headingKp * headingError;
-
-  // Calculate linear velocity for moving
-  float linearVel = speedMMS; // Convert speed to cm/s
-
-  // Update robot pose based on odometry
-  updatePose();
-
-  // Calculate left and right wheel velocities for differential drive
-  float leftWheelVel = linearVel - (angularVel * wheel_circumfrence_mm) / 2.0;
-  float rightWheelVel = linearVel + (angularVel * wheel_circumfrence_mm) / 2.0;
-
-  // Set motor speeds if motors are enabled
-  L_setSpeed_MMPS(leftWheelVel);
-  R_setSpeed_MMPS(rightWheelVel);
-}
-
-// Returns the target orinenation of the robot based on the change in X and Y
+/*******************************************************
+  Method: Orientation Calculation
+  In: Target X and Y
+  Out: Target Orientation
+*******************************************************/
 float DDR_Control::calc_orientation(float target_x, float target_y)
 {
   float deltaX = target_x - x_pos;
   float deltaY = target_y - y_pos;
-  // return atan2f(deltaY, deltaX);
   float target_orientation = 0;
   if (deltaX == 0)
   {
@@ -534,7 +332,7 @@ float DDR_Control::calc_orientation(float target_x, float target_y)
     }
     else
     {
-      Serial.println("ERROR X is positive but Y is not matched");
+      send_ERROR(MOVEMENT, 0x02);
     }
   }
   else if (deltaX < 0)
@@ -549,23 +347,23 @@ float DDR_Control::calc_orientation(float target_x, float target_y)
     }
     else
     {
-      Serial.println("ERROR X is negative but Y is not matched");
+      send_ERROR(MOVEMENT, 0x03);
     }
   }
   else
   {
     Serial.println((String)deltaX);
     Serial.println((String)deltaY);
-    Serial.println("ERROR NO SUITABLE a_pos FOUND");
+    send_ERROR(MOVEMENT, 0x04);
   }
 
   if (target_orientation > 2 * PI)
   {
-    Serial.println("a_pos OUT OF BOUNDS, ABOVE 2PI");
+    send_ERROR(MOVEMENT, 0x05);
   }
   else if (target_orientation < 0)
   {
-    Serial.println("a_pos OUT OF BOUNDS, below 0");
+    send_ERROR(MOVEMENT, 0x06);
   }
   else
   {
@@ -577,7 +375,11 @@ float DDR_Control::calc_orientation(float target_x, float target_y)
   return target_orientation;
 }
 
-// Returns the change in Ypos (deltaY), based on the strightline distance covered and the current a_pos of the robot
+/*******************************************************
+  Method: delta Y Calculation
+  In: Diagonal Distance
+  Out: delta Y
+*******************************************************/
 float DDR_Control::calc_delta_Y(float straight_line_dist)
 {
   if (a_pos == 0)
@@ -614,12 +416,16 @@ float DDR_Control::calc_delta_Y(float straight_line_dist)
   }
   else
   {
-    Serial.println("ERROR! NO DELTA Y FOUND. D: " + (String)straight_line_dist + " A: " + (String)a_pos);
+    send_ERROR(MOVEMENT, 0x07);
     return 0;
   }
 }
 
-// Returns the change in Xpos (deltaX), based on the strightline distance covered and the current a_pos of the robot
+/*******************************************************
+  Method: delta X Calculation
+  In: Diagonal Distance
+  Out: delta X
+*******************************************************/
 float DDR_Control::calc_delta_X(float straight_line_dist)
 {
   if (a_pos == 0)
@@ -656,12 +462,16 @@ float DDR_Control::calc_delta_X(float straight_line_dist)
   }
   else
   {
-    Serial.println("ERROR! NO DELTA X FOUND. D: " + (String)straight_line_dist + " A: " + (String)a_pos);
+    send_ERROR(MOVEMENT, 0x08);
     return 0;
   }
 }
 
-// Returns the diagonal distance the robot needs to cover based on the target XY pos, current orientation
+/*******************************************************
+  Method: Diagonal Distance Calculation
+  In: Traget X & Y
+  Out: Diagonal Distance
+*******************************************************/
 float DDR_Control::calc_diagonal_distance(float target_x, float target_y)
 {
   float deltaX = target_x - x_pos;
@@ -683,22 +493,34 @@ float DDR_Control::calc_diagonal_distance(float target_x, float target_y)
   return distance_diagonal;
 }
 
-// Sets the speed of the robot in KM/h, !!NOTE!! you must set the steps per millimeter before setting the speed
-void DDR_Control::setSpeedInKMH(float speed)
+/*******************************************************
+  Method: delta Orientation Calculation
+  In: Target Orientation
+  Out: delta Orientation
+*******************************************************/
+float DDR_Control::get_delta_theta(float target)
 {
-  setSpeedInMMS(speed * 277.7777777778);
+  float angleDiff = target - getOrientation();
+  if (angleDiff > PI)
+  {
+    return angleDiff - (2 * PI);
+  }
+  else if (angleDiff < -PI)
+  {
+    return angleDiff + (2 * PI);
+  }
+  else
+  {
+    return angleDiff;
+  }
 }
 
-// Sets the speed of the robot in mm/s, !!NOTE!! you must set the steps per millimeter before setting the speed
-void DDR_Control::setSpeedInMMS(float speed)
-{
-  L_setSpeed_MMPS(speed);
-  R_setSpeed_MMPS(speed);
-}
-
-//--  Public Functions ----------------------------------------
-
-// Initialize the robot, for unit pick either KMH or MMS
+/*******************************************************
+  Method: Initialize the robot
+  In: speed unit (KMH, MMS)
+      speed (speed in units)
+  Out: none
+*******************************************************/
 void DDR_Control::begin(unit speed_units, float speed)
 {
 
@@ -714,11 +536,6 @@ void DDR_Control::begin(unit speed_units, float speed)
     setSpeedInMMS(speed);
     defaultSpeed_MMS = speed;
   }
-
-  L_Current_POS_MM = 0;
-  R_Current_POS_MM = 0;
-  L_Target_POS_MM = 0;
-  R_Target_POS_MM = 0;
 
   x_pos = 0;
   y_pos = 0;
@@ -736,6 +553,328 @@ void DDR_Control::begin(unit speed_units, float speed)
 
   Serial.println("ROOMBA SETUP COMPLETE");
 }
+
+/*******************************************************
+  Method: Add moves to buffer
+  In: xy coordinates
+  Out: none
+*******************************************************/
+void DDR_Control::enqueueMove(float x, float y)
+{
+  Move *newMove = new Move;
+  newMove->x = x;
+  newMove->y = y;
+  newMove->next = nullptr;
+
+  if (tail == nullptr)
+  {
+    head = newMove;
+    tail = newMove;
+  }
+  else
+  {
+    tail->next = newMove;
+    tail = newMove;
+  }
+}
+
+/*******************************************************
+  Method: Add moves to buffer before current move
+  In: xy coordinates
+  Out: none
+*******************************************************/
+void DDR_Control::insertMoveBeforeCurrent(float x, float y)
+{
+  Move *newMove = new Move;
+  newMove->x = x;
+  newMove->y = y;
+
+  if (head == nullptr)
+  {
+    head = newMove;
+    tail = newMove;
+    newMove->next = nullptr;
+  }
+  else
+  {
+    newMove->next = head;
+    head = newMove;
+  }
+}
+
+/*******************************************************
+  Method: Executes the next move in the buffer
+  In: none
+  Out: returns true if the buffer is empty
+*******************************************************/
+bool DDR_Control::executeMoves()
+{
+  if (head != nullptr)
+  {
+    Move *current = head;
+    setUpMove(current->x, current->y);
+
+    head = current->next;
+    delete current; // Free memory for the completed move
+    return false;
+  }
+
+  return true;
+}
+
+/*******************************************************
+  Method: Clears the move buffer
+  In: none
+  Out: none
+*******************************************************/
+void DDR_Control::clearMoves()
+{
+  while (head != nullptr)
+  {
+    Move *current = head;
+    head = current->next;
+    delete current; // Free memory for the removed move
+  }
+  head = nullptr; // Reset the head pointer to nullptr since the list is empty
+  tail = nullptr; // Reset the tail pointer to nullptr since the list is empty
+}
+
+/*******************************************************
+  Method: Add moves to buffer
+  In: xy coordinates
+  Out: none
+*******************************************************/
+void DDR_Control::relative_enqueueMove(float x, float y)
+{
+  Move *newMove = new Move;
+  newMove->x = x;
+  newMove->y = y;
+  newMove->next = nullptr;
+
+  if (tail == nullptr)
+  {
+    head = newMove;
+    tail = newMove;
+  }
+  else
+  {
+    tail->next = newMove;
+    tail = newMove;
+  }
+}
+
+/*******************************************************
+  Method: Add moves to buffer before current move
+  In: xy coordinates
+  Out: none
+*******************************************************/
+void DDR_Control::relative_insertMoveBeforeCurrent(float x, float y)
+{
+  Move *newMove = new Move;
+  newMove->x = x;
+  newMove->y = y;
+
+  if (relative_head == nullptr)
+  {
+    relative_head = newMove;
+    relative_tail = newMove;
+    newMove->next = nullptr;
+  }
+  else
+  {
+    newMove->next = relative_head;
+    relative_head = newMove;
+  }
+}
+
+/*******************************************************
+  Method: Executes the next move in the buffer
+  In: none
+  Out: returns true if the buffer is empty
+*******************************************************/
+bool DDR_Control::relative_executeMoves()
+{
+  if (relative_head != nullptr)
+  {
+    Move *current = relative_head;
+    setUpMove(current->x, current->y);
+
+    relative_head = current->next;
+    delete current; // Free memory for the completed move
+    return false;
+  }
+
+  return true;
+}
+
+/*******************************************************
+  Method: Clears the move buffer
+  In: none
+  Out: none
+*******************************************************/
+void DDR_Control::relative_clearMoves()
+{
+  while (relative_head != nullptr)
+  {
+    Move *current = head;
+    relative_head = current->next;
+    delete current; // Free memory for the removed move
+  }
+  relative_head = nullptr; // Reset the head pointer to nullptr since the list is empty
+  relative_tail = nullptr; // Reset the tail pointer to nullptr since the list is empty
+}
+
+/*******************************************************
+  Method: update the current position
+  In: none
+  Out: none
+*******************************************************/
+void DDR_Control::updatePose()
+{
+
+  float L_ENC_READ = getEncoderAngle(left);
+  float R_ENC_READ = getEncoderAngle(right);
+  unsigned long currentTime = millis();
+  float elapsedTime = (currentTime - pose_previousTime) / 1000.0; // Convert to seconds
+
+  // Read encoder values
+
+  float L_delta_theta = -1 * (L_ENC_READ - L_ENC_PREVIOUS);
+  float R_delta_theta = -1 * (R_ENC_READ - R_ENC_PREVIOUS);
+  L_ENC_PREVIOUS = L_ENC_READ;
+  R_ENC_PREVIOUS = R_ENC_READ;
+  // Calculate the change in angle accounting for overflow
+  if (L_delta_theta > 180)
+  {
+    L_delta_theta -= 360.0; // Account for counter-clockwise movement
+  }
+  else if (L_delta_theta < -180)
+  {
+    L_delta_theta += 360.0; // Account for clockwise movement
+  }
+
+  if (R_delta_theta > 180)
+  {
+    R_delta_theta -= 360.0; // Account for counter-clockwise movement
+  }
+  else if (R_delta_theta < -180)
+  {
+    R_delta_theta += 360.0; // Account for clockwise movement
+  }
+  float leftDist = (L_delta_theta / 360.0) * (wheel_circumfrence_mm) * (float)(1.0 / gear_ratio);  // Function to get left encoder distance change in cm
+  float rightDist = (R_delta_theta / 360.0) * (wheel_circumfrence_mm) * (float)(1.0 / gear_ratio); // Function to get right encoder distance change in cm
+
+  // Calculate wheel velocities
+  float leftVel = (leftDist /* - L_prev_dist */) / elapsedTime;
+  float rightVel = (rightDist /* - R_prev_dist*/) / elapsedTime;
+
+  // Calculate robot linear and angular velocities
+  float linearVel = (leftVel + rightVel) / 2.0;
+  float angularVel = (leftVel - rightVel) / (wheel_distance_mm);
+
+  // Update robot pose
+  updatePosition(angularVel * elapsedTime);
+  updatePosition((linearVel * sin(getOrientation()) * elapsedTime), (linearVel * cos(getOrientation()) * elapsedTime));
+
+  // Store current values for next iteration
+  L_prev_dist = leftDist;
+  R_prev_dist = rightDist;
+  pose_previousTime = currentTime;
+
+  // unsigned long currentMillis = millis();
+  // if (currentMillis > previousMillis___POSE + 1000)
+  // {
+  //   previousMillis___POSE = currentMillis;
+  //   String ArrayLine;
+  //   ArrayLine = (String)millis() + "\t";
+  //   ArrayLine += "X: " + (String)getXCoordinate() + " Y: " + (String)getYCoordinate() + " A: " + (String)getOrientation();
+  //   // ArrayLine += "\nLeft Step Time: " + (String)L_step_time + " Right Step Time: " + (String)R_step_time;
+  //   Serial.println(ArrayLine);
+  //   // Serial.println("L: " + (String)L_delta_theta);
+  //   // Serial.println("R: " + (String)R_delta_theta);
+  // }
+}
+
+/*******************************************************
+  Method: Override the current position
+  In: New Orientation
+  Out: none
+*******************************************************/
+void DDR_Control::setPosition(float angle)
+{
+  a_pos = angle;
+}
+
+/*******************************************************
+  Method: Override the current position
+  In: New X pos and Y pos
+  Out: none
+*******************************************************/
+void DDR_Control::setPosition(float xPos, float yPos)
+{
+  x_pos = xPos;
+  y_pos = yPos;
+}
+
+/*******************************************************
+  Method: Override the current position
+  In: New X pos, Y pos and Orientation
+  Out: none
+*******************************************************/
+void DDR_Control::setPosition(float xPos, float yPos, float angle)
+{
+  x_pos = xPos;
+  y_pos = yPos;
+  a_pos = angle;
+}
+
+/*******************************************************
+  Method: Get Current Position
+  In: none
+  Out: position
+*******************************************************/
+float DDR_Control::getXCoordinate() const
+{
+  return x_pos;
+}
+
+/*******************************************************
+  Method: Get Current Position
+  In: none
+  Out: position
+*******************************************************/
+float DDR_Control::getYCoordinate() const
+{
+  return y_pos;
+}
+
+/*******************************************************
+  Method: Get Current Position
+  In: none
+  Out: position (radians)
+*******************************************************/
+float DDR_Control::getOrientation() const
+{
+  return a_pos;
+}
+
+// Sets the speed of the robot in KM/h, !!NOTE!! you must set the steps per millimeter before setting the speed
+void DDR_Control::setSpeedInKMH(float speed)
+{
+  setSpeedInMMS(speed * 277.7777777778);
+}
+
+// Sets the speed of the robot in mm/s, !!NOTE!! you must set the steps per millimeter before setting the speed
+void DDR_Control::setSpeedInMMS(float speed)
+{
+  L_setSpeed_MMPS(speed);
+  R_setSpeed_MMPS(speed);
+}
+
+//--  Public Functions ----------------------------------------
+
+// Initialize the robot, for unit pick either KMH or MMS
+
 void DDR_Control::setUpMotors(byte leftMotorStepPin, byte leftMotorDirPin, byte leftMotorEnablePin, byte rightMotorStepPin, byte rightMotorDirPin, byte rightMotorEnablePin)
 {
   L_S_pin = leftMotorStepPin;
@@ -845,16 +984,6 @@ void DDR_Control::setUpEncoders(TwoWire &I2C_left, TwoWire &I2C_right)
   resetEncoders(both);
 
   Serial.println("ENCODER SETUP COMPLETE");
-
-  // if (!mpu.setup(0x68))
-  // { // change to your own address
-
-  //     Serial.println("MPU connection failed. Please check your connection with `connection_check` example.");
-  //     delay(1000);
-
-  // } else{
-  //   Serial.println("MPU setup success");
-  // }
 }
 
 void DDR_Control::resetEncoders(motor selector)
@@ -906,201 +1035,9 @@ float DDR_Control::getEncoderAngle(motor identifier)
   // return (float)map_f(newAngle,0.0,4095.0,0.0,360.0);//(newAngle * 0.087890625)
 }
 
-// Overide the position stored by teh robot
-void DDR_Control::setPosition(float angle)
-{
-  a_pos = angle;
-}
 
-// Overide the position stored by teh robot
-void DDR_Control::setPosition(float xPos, float yPos)
-{
-  x_pos = xPos;
-  y_pos = yPos;
-}
-
-// Overide the position stored by teh robot
-void DDR_Control::setPosition(float xPos, float yPos, float angle)
-{
-  x_pos = xPos;
-  y_pos = yPos;
-  a_pos = angle;
-}
-
-// Get the current X coordinate
-float DDR_Control::getXCoordinate() const
-{
-  return x_pos;
-}
-
-// Get the current Y coordinate
-float DDR_Control::getYCoordinate() const
-{
-  return y_pos;
-}
-
-// Get the current a_pos (in radians)
-float DDR_Control::getOrientation() const
-{
-  return a_pos;
-}
-
-// Move the robot directly to a target position (X, Y)
-void DDR_Control::moveTo(float targetX, float targetY)
-{
-
-  float deltaX = targetX - x_pos;
-  float deltaY = targetY - y_pos;
-
-  setUpTurn(calc_orientation(deltaX, deltaY));
-  while (!motionComplete())
-  {
-    processMovement();
-  }
-  // a_pos = calculateOrientation(deltaX, deltaY);
-
-  float distance_diagonal = calc_diagonal_distance(deltaX, deltaY);
-
-  L_Current_POS_MM = 0;
-  R_Current_POS_MM = 0;
-  STR_MOVE = true;
-  L_setTarget_POS(distance_diagonal);
-  R_setTarget_POS(distance_diagonal);
-
-  // Update the position and a_pos
-  // updatePosition(deltaX, deltaY, deltaOrientation);
-}
-
-bool DDR_Control::motionComplete()
-{
-
-  if ((L_stepper_target_reached()) && (R_stepper_target_reached()))
-  {
-    STR_MOVE = false;
-    ROT_MOVE = false;
-    L_STEP_MOVING = false;
-    L_STEP_MOVING = false;
-    // load_move();
-    return true;
-  }
-  else
-  {
-    if (!L_stepper_target_reached())
-    {
-      L_STEP_MOVING = true;
-    }
-    else
-    {
-      L_STEP_MOVING = false;
-    }
-    if (!R_stepper_target_reached())
-    {
-      R_STEP_MOVING = true;
-    }
-    else
-    {
-      R_STEP_MOVING = false;
-    }
-
-    return false;
-  }
-}
 
 long previous___Millis = 0;
-
-bool DDR_Control::processMovement()
-{
-  moveSteppers();
-  updatePose();
-
-  long current___Millis = millis();
-  if (current___Millis - previous___Millis >= 300)
-  {
-    // Serial.println("X: " + (String)getXCoordinate() + " Y: " + (String)getYCoordinate() + " A: " + (String)getOrientation());
-  }
-  if (!L_stepper_target_reached())
-  {
-    L_STEP_MOVING = true;
-  }
-  else
-  {
-    L_STEP_MOVING = false;
-  }
-
-  if (!R_stepper_target_reached())
-  {
-    R_STEP_MOVING = true;
-  }
-  else
-  {
-    R_STEP_MOVING = false;
-  }
-
-  return true;
-}
-
-void DDR_Control::UpdatePosFromEncoders(long refresh_rate)
-{
-  encoder_current_millis = millis();
-  if (encoder_current_millis - encoder_previous_millis >= refresh_rate)
-  {
-    encoder_previous_millis = encoder_current_millis;
-    float L_ENC_READ = getEncoderAngle(left);
-    float R_ENC_READ = getEncoderAngle(right);
-    float L_delta_theta = L_ENC_READ - L_ENC_PREVIOUS;
-    float R_delta_theta = R_ENC_READ - R_ENC_PREVIOUS;
-    L_ENC_PREVIOUS = L_ENC_READ;
-    R_ENC_PREVIOUS = R_ENC_READ;
-    // Calculate the change in angle accounting for overflow
-    if (L_delta_theta > 180)
-    {
-      L_delta_theta -= 360.0; // Account for counter-clockwise movement
-    }
-    else if (L_delta_theta < -180)
-    {
-      L_delta_theta += 360.0; // Account for clockwise movement
-    }
-
-    if (R_delta_theta > 180)
-    {
-      R_delta_theta -= 360.0; // Account for counter-clockwise movement
-    }
-    else if (R_delta_theta < -180)
-    {
-      R_delta_theta += 360.0; // Account for clockwise movement
-    }
-
-    // Calculate the linear distance traveled
-    float L_delta_MM = (L_delta_theta / 360.0) * (wheel_circumfrence_mm) * (1 / gear_ratio); // gear_ratio;
-    float R_delta_MM = (R_delta_theta / 360.0) * (wheel_circumfrence_mm) * (1 / gear_ratio); // gear_ratio;
-
-    float delta_X = 0;
-    float delta_Y = 0;
-    float delta_theta = 0;
-
-    delta_X = (calc_delta_X((L_delta_MM + R_delta_MM) / 2));
-    delta_Y = (calc_delta_Y((L_delta_MM + R_delta_MM) / 2));
-    delta_theta = ((L_delta_MM - R_delta_MM) / wheel_distance_mm);
-
-    L_Current_POS_MM += L_delta_MM;
-    R_Current_POS_MM += R_delta_MM;
-
-    // updatePosition(delta_X, delta_Y, delta_theta);
-  }
-}
-
-// Move the robot forward
-void DDR_Control::setupMoveForward(float distance)
-{
-  L_Current_POS_MM = 0;
-  R_Current_POS_MM = 0;
-
-  L_setTarget_POS(distance);
-  R_setTarget_POS(distance);
-
-  STR_MOVE = true;
-  ROT_MOVE = false;
-}
 
 void DDR_Control::setUpMove(float target_x, float target_y)
 {
@@ -1118,49 +1055,29 @@ void DDR_Control::setUpMove(float target_x, float target_y)
   }
 }
 
-// Turn the robot by a given angle (in radians)
-void DDR_Control::setUpTurn(float TargetOrientation)
+void DDR_Control::setUpTurn(float target_a)
 {
-  L_Current_POS_MM = 0;
-  R_Current_POS_MM = 0;
-  float angle = TargetOrientation - a_pos;
-  if (angle > PI)
+  target.a_pos = target_a;
+  MoveState previous = movementState;
+  if (target.a_pos != getOrientation())
   {
-    angle = angle - (2 * PI);
+    movementState = TURN;
   }
-  else if (angle < -PI)
+  else
   {
-    angle = angle + (2 * PI);
+    movementState = previous;
   }
-  float distance = angle * rotationConstant;
-  L_setTarget_POS(distance);
-  R_setTarget_POS(-distance);
-  // ROT_MOVE = true;
-  // STR_MOVE = false;
-  // if (distance != 0)
-  // {
-  //   ROT_MOVE = true;
-  // }
-}
-
-void DDR_Control::setUpTurnDeg(float angle)
-{
-  setUpTurn(2 * PI * (angle / 360));
 }
 
 // Stop the robot // This is a blocking function while to robot decelerates to come to a stop
 void DDR_Control::stop()
 {
-  disableStepper(both);
-  L_STEP_MOVING = false;
-  R_STEP_MOVING = false;
+  stopStepper(both);
 }
 
 void DDR_Control::resume()
 {
-  enableStepper(both);
-  L_STEP_MOVING = true;
-  R_STEP_MOVING = true;
+  resumeStepper(both);
 }
 
 void DDR_Control::enableStepper(motor select)
@@ -1205,70 +1122,17 @@ float DDR_Control::toRad(float deg)
   return deg * (PI / 180.0);
 }
 
-void DDR_Control::enqueueMove(float x, float y)
-{
-  Move *newMove = new Move;
-  newMove->x = x;
-  newMove->y = y;
-  newMove->next = nullptr;
 
-  if (tail == nullptr)
-  {
-    head = newMove;
-    tail = newMove;
-  }
-  else
-  {
-    tail->next = newMove;
-    tail = newMove;
-  }
+float DDR_Control::L_getCurrentSpeed_MMS(void)
+{
+  return leftWheelSpeed;
 }
 
-void DDR_Control::insertMoveBeforeCurrent(float x, float y)
+float DDR_Control::R_getCurrentSpeed_MMS(void)
 {
-  Move *newMove = new Move;
-  newMove->x = x;
-  newMove->y = y;
-
-  if (head == nullptr)
-  {
-    head = newMove;
-    tail = newMove;
-    newMove->next = nullptr;
-  }
-  else
-  {
-    newMove->next = head;
-    head = newMove;
-  }
+  return rightWheelSpeed;
 }
 
-bool DDR_Control::executeMoves()
-{
-  if (head != nullptr)
-  {
-    Move *current = head;
-    setUpMove(current->x, current->y);
-
-    head = current->next;
-    delete current; // Free memory for the completed move
-    return false;
-  }
-
-  return true;
-}
-
-void DDR_Control::clearMoves()
-{
-  while (head != nullptr)
-  {
-    Move *current = head;
-    head = current->next;
-    delete current; // Free memory for the removed move
-  }
-  head = nullptr; // Reset the head pointer to nullptr since the list is empty
-  tail = nullptr; // Reset the tail pointer to nullptr since the list is empty
-}
 
 void DDR_Control::loop()
 {
@@ -1383,6 +1247,7 @@ void DDR_Control::loop()
     rightWheelSpeed += -0.1 * angleDiff; // You can adjust this factor
     L_setSpeed_MMPS(leftWheelSpeed);
     R_setSpeed_MMPS(rightWheelSpeed);
+    //Serial.println("RUNNING @ " + (String)leftWheelSpeed + ", " + (String)rightWheelSpeed);
   }
   break;
 
@@ -1410,13 +1275,21 @@ void DDR_Control::calibrateMPU()
   // mpu.verbose(true);
   // delay(5000);
   // mpu.calibrateAccelGyro();
-  //mpu.setMagneticDeclination(20.11);
+  // mpu.setMagneticDeclination(20.11);
   Serial.println("Please move in a figure of eight while mag calibartes");
   delay(2000);
   mpu.calibrateMag();
 
   print_MPU_calibration();
   mpu.verbose(false);
+}
+
+void DDR_Control::setUp360(){
+  L_setSpeed_MMPS(defaultSpeed_MMS);
+  R_setSpeed_MMPS(-defaultSpeed_MMS);
+  resumeStepper(both);
+  updatePose();
+  moveSteppers();
 }
 
 void DDR_Control::print_MPU_calibration()

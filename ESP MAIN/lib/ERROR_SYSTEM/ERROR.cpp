@@ -226,6 +226,33 @@ String getMovement_ERRORS(int module_code, int error_code)
         MSG += "MOVEMENT STATE ENCOUNTERED ERROR";
         break;
 
+    case 0x02:
+        MSG += "X is positive but Y is not matched";
+        break;
+
+    case 0x03:
+        MSG += "X is negative but Y is not matched";
+        break;
+
+    case 0x04:
+        MSG += "NO SUITABLE A_pos FOUND";
+        break;
+
+    case 0x05:
+        MSG += "a_pos OUT OF BOUNDS, ABOVE 2PI";
+        break;
+
+    case 0x06:
+        MSG += "a_pos OUT OF BOUNDS, below 0";
+        break;
+
+    case 0x07:
+        MSG += "NO DELTA Y FOUND";
+        break;
+
+    case 0x08:
+        MSG += "NO DELTA X FOUND";
+        break;
     default:
         MSG += "UNKOWN ERROR";
         break;

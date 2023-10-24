@@ -71,7 +71,7 @@ int16_t TF_LUNA::getDistance(){
     {
       if (luna.getData(temp, this->address))
       {
-        return temp;
+        return temp*10;
       }
       i++;
     }
