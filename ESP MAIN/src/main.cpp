@@ -3,13 +3,36 @@
 #include <ERROR.h>
 
 
-TwoWire I2CA = TwoWire(0);
-TwoWire I2CB = TwoWire(1);
+// TwoWire I2CA = TwoWire(0);
+// TwoWire I2CB = TwoWire(1);
+
+#define I2CA Wire
+#define I2CB Wire1
 
 DDR_Control ROOMBA(WHEEL_CIRCUMFERENCE, WHEEL_DISTANCE, MICROSTEP, STEPPER_STEP_COUNT, GEAR_RATIO);
 
-TF_LUNA LiDAR1(LiDAR_ADD_1, LiDAR_frame_rate, LiDAR_1, I2CA);
-TF_LUNA LiDAR2(LiDAR_ADD_2, LiDAR_frame_rate, LiDAR_2, I2CA);
+TF_LUNA LiDAR1(LiDAR_ADD_1, LiDAR_frame_rate, LiDAR_1);
+TF_LUNA LiDAR2(LiDAR_ADD_2, LiDAR_frame_rate, LiDAR_2);
+
+uint8_t broadcastAddress[] = {0xEC, 0x62, 0x60, 0xA7, 0x06, 0x94};
+
+typedef struct struct_message {
+    int angle;
+} struct_message;
+
+struct_message myData;
+
+int servo_pos_now = 90;
+
+esp_now_peer_info_t peerInfo;
+
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+  memcpy(&myData, incomingData, sizeof(myData));
+  Serial.print("Bytes received: ");
+  Serial.println(len);
+  servo_pos_now = myData.angle;
+  Serial.println("Servo Angle: " + (String)servo_pos_now);
+}
 
 // AS5600_ENC L_ENCODER;
 // AS5600_ENC R_ENCODER;
@@ -42,17 +65,34 @@ void setup()
 
 
   //web_setup();
-
+  //WiFi.mode(WIFI_AP_STA);
   client_setup();
+  // Serial.println(WiFi.channel());
+
   is_I2C_setup = setup_I2C();
 
-  I2C_Scan(I2CB);
-  I2C_Scan(I2CA);
+//  // Init ESP-NOW
+//   if (esp_now_init() != ESP_OK) {
+//     Serial.println("Error initializing ESP-NOW");
+//     return;
+//   }
+
+  // esp_now_register_recv_cb(OnDataRecv);
+
+  // while(1){
+  // I2C_Scan(I2CB);
+  // I2C_Scan(I2CA);
+
+  // // Serial.println("Servo: " + (String)requestIntFromSlave(REG_SERVO_POS));
+  // // delay(20);
+  // }
+  Serial.println(WiFi.macAddress());
+
   setupBatterySense();
   LiDAR1.begin();
   LiDAR2.begin();
   ROOMBA.setUpMotors(L_Stepper_STEP_PIN, L_Stepper_DIR_PIN, L_Stepper_ENABLE_PIN, R_Stepper_STEP_PIN, R_Stepper_DIR_PIN, R_Stepper_ENABLE_PIN, MS1_pin, MS2_pin, MS3_pin);
-  ROOMBA.setUpEncoders(I2CB, I2CA);
+  ROOMBA.setUpEncoders();
   ROOMBA.begin(KMH, 50); // 19.1525439
   // Serial.println("BEFORE ENCODER SETUP");
   // L_ENCODER.setWire(I2CB);
@@ -62,7 +102,6 @@ void setup()
   // while (1)
   // {
 
-     I2C_Scan(I2CB);
 
   //   Serial.println("Encoder L: " + (String)L_ENCODER.getRawAngle());
   //   Serial.println("Encoder R: " + (String)R_ENCODER.getRawAngle());
@@ -86,7 +125,6 @@ void setup()
   //   I2CB.write(REG_SERVO_POS);
   //   I2CB.endTransmission();
   // }
-  delay(2000);
     // xTaskCreatePinnedToCore(
     //   task1code, /* Function to implement the task */
     //   "Task1", /* Name of the task */
@@ -113,7 +151,10 @@ bool lidar1_data_send = true;
 unsigned long previousMillis_map = 0;
 void loop()
 {
-    ROOMBA.setUp360();
+
+  // Serial.println("Lidar 1" + (String)LiDAR1.getDistance());
+  // Serial.println("Lidar 2" + (String)LiDAR2.getDistance());
+  ROOMBA.setUp360();
   //client_loop();
   // bump_timeout++;
   // if (bump_triggred)
@@ -123,10 +164,10 @@ void loop()
   //   bump_timeout = 0;
   //   bump = true;
   // }
-  //ROOMBA.loop();
+  ROOMBA.loop();
   //Serial.println("LOOP");
   // web_loop();
-  //ROOMBA.setPosition(ROOMBA.getOrientation() +0.01);
+  // ROOMBA.setPosition(ROOMBA.getOrientation() +0.01);
 
   if(millis() - previousMillis_map > 50){
     previousMillis_map = millis();
@@ -138,12 +179,13 @@ void loop()
       //send_coordinates(obj1_x, obj1_y, ROOMBA.getXCoordinate(), ROOMBA.getYCoordinate());
     } else {
       lidar1_data_send = true;
-      // send_lidar2_obj();
+      //send_lidar2_obj();
+      send_lidar1_obj();
       //send_lidar2_obj(obj1_x, obj1_y, LiDAR2.getDistance());
       //send_coordinates(obj1_x, obj1_y, ROOMBA.getXCoordinate(), ROOMBA.getYCoordinate());
     }
 
-  }
+}
 
   // send_x_object((ROOMBA.getXCoordinate()+ (9.88 * cos(ROOMBA.getOrientation()) + (3.1 + LiDAR1.getDistance())))/10);
   // send_y_object((ROOMBA.getYCoordinate()+ (9.88 * sin(ROOMBA.getOrientation()) + (3.1 + LiDAR1.getDistance())))/10);
@@ -291,13 +333,28 @@ float requestFloatFromSlave(uint8_t regAddress)
 
 bool setup_I2C()
 {
-  if (I2CA.begin(I2CA_SDA, I2CA_SCL, 100000) && I2CB.begin(I2CB_SDA, I2CB_SCL, 100000))
-  {
-    return true;
-  }
-  else
-    return false;
+  bool I2CA_active = false;
+  bool I2CB_active = false;
+  if (I2CA.begin(I2CA_SDA, I2CA_SCL, 100000)){
+    Serial.println("I2CA SETUP COMPLETE");
+    I2CA_active = true;
+  } else {
+    Serial.println("I2CA SETUP FAILED");
 }
+
+if(I2CB.begin(I2CB_SDA, I2CB_SCL, 100000)){
+    Serial.println("I2CB SETUP COMPLETE");
+    I2CB_active = true;
+  } else {
+    Serial.println("I2CB SETUP FAILED");
+}
+if(I2CA_active && I2CB_active){
+  return true;
+} else {
+  return false;
+}
+}
+
 
 void bump_ISR()
 {

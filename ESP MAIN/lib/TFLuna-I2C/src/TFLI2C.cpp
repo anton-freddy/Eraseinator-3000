@@ -35,17 +35,9 @@
 #include <Wire.h>          //  Arduino I2C/Two-Wire Library
 
 // Constructor/Destructor
-TFLI2C::TFLI2C(){
-  ptr = &Wire;
-}
+TFLI2C::TFLI2C(){}
 
-TFLI2C::TFLI2C(TwoWire &WIRE){
-  ptr = &WIRE;
-}
 
-void TFLI2C::setWire(TwoWire &WIRE){
-  ptr = &WIRE;  // set the private pointer to the passed Wire object
-}
 
 TFLI2C::~TFLI2C(){}
 
@@ -247,32 +239,32 @@ bool TFLI2C::Set_Trigger( uint8_t adr)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool TFLI2C::readReg( uint8_t nmbr, uint8_t addr)
 {
-  ptr->beginTransmission( addr);
-  ptr->write( nmbr);
+  Wire.beginTransmission( addr);
+  Wire.write( nmbr);
 
-  if( ptr->endTransmission() != 0)  // If write error...
+  if( Wire.endTransmission() != 0)  // If write error...
   {
     tfStatus = TFL_I2CWRITE;        // then set status code...
     return false;                   // and return `false`.
   }
   // Request 1 byte from the device
   // and release bus when finished.
-  ptr->requestFrom( ( int)addr, 1, true);
-    if( ptr->peek() == -1)            // If read error...
+  Wire.requestFrom( ( int)addr, 1, true);
+    if( Wire.peek() == -1)            // If read error...
     {
       tfStatus = TFL_I2CREAD;         // then set status code.
       return false;
     }
-  regReply = ( uint8_t)ptr->read();   // Read the received data...
+  regReply = ( uint8_t)Wire.read();   // Read the received data...
   return true;
 }
 
 bool TFLI2C::writeReg( uint8_t nmbr, uint8_t addr, uint8_t data)
 {
-  ptr->beginTransmission( addr);
-  ptr->write( nmbr);
-  ptr->write( data);
-  if( ptr->endTransmission( true) != 0)  // If write error...
+  Wire.beginTransmission( addr);
+  Wire.write( nmbr);
+  Wire.write( data);
+  if( Wire.endTransmission( true) != 0)  // If write error...
   {
     tfStatus = TFL_I2CWRITE;        // then set status code...
     return false;                   // and return `false`.

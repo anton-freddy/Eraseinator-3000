@@ -1,6 +1,19 @@
 #include <main.h>
 #include <freertos/FreeRTOS.h>
 
+
+uint8_t broadcastAddress[] = {0x34, 0x85, 0x18, 0xA5, 0x2C, 0x90};
+
+
+typedef struct struct_message {
+    int angle;
+} struct_message;
+
+struct_message myData;
+
+esp_now_peer_info_t peerInfo;
+
+
 void task1code(void *pvParameter)
 {
   for (;;)
@@ -18,6 +31,35 @@ void setup()
   DC_setup();
   // OTA_setup();
   servo_setup();
+
+  //   WiFi.mode(WIFI_STA);
+  // int32_t channel = obtain_wifi(wifi_SSID);
+
+  // Serial.println("Channel: " + (String)channel);
+  // // WiFi.printDiag(Serial); 
+  // // esp_wifi_set_promiscuous(true);
+  // // esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+  // // esp_wifi_set_promiscuous(false);
+  // // WiFi.printDiag(Serial);
+  // // Init ESP-NOW
+  // if (esp_now_init() != ESP_OK) {
+  //   Serial.println("Error initializing ESP-NOW");
+  //   return;
+  // }
+
+  //   // Once ESPNow is successfully Init, we will register for Send CB to
+  // // get the status of Trasnmitted packet
+  // esp_now_register_send_cb(OnDataSent);
+
+  // memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  // peerInfo.channel = obtain_wifi(wifi_SSID);
+  // peerInfo.encrypt = false;
+
+  //   // Add peer        
+  // if (esp_now_add_peer(&peerInfo) != ESP_OK){
+  //   Serial.println("Failed to add peer");
+  //   return;
+  // }
 
   Wire.begin(slave_ADDR);
   Wire.onReceive(receiveEvent);
@@ -39,12 +81,12 @@ void setup()
   // } else {
   //   Serial.println("Task created successfully");
   // }
-  if (!LittleFS.begin())
-  {
+  // if (!LittleFS.begin())
+  // {
 
-    Serial.println("An Error has occurred while mounting LittleFS");
-    return;
-  }
+  //   Serial.println("An Error has occurred while mounting LittleFS");
+  //   return;
+  // }
 
   // while(1){
   // servo.write(120);
@@ -82,7 +124,16 @@ void loop()
     servo_pos -= servo_step_size;
   }
   servo.write(servo_pos);
-  Serial.println("Servo pos: " + (String)servo_pos);
+  // myData.angle = servo_pos;
+  // esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
+   
+  // if (result == ESP_OK) {
+  //   Serial.println("Sent with success");
+  // }
+  // else {
+  //   Serial.println("Error sending the data");
+  // }
+  // Serial.println("Servo pos: " + (String)servo_pos);
 
   //   //lcd_loop();
   //   DC_loop();

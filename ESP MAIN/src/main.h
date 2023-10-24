@@ -8,6 +8,7 @@
 #include <string>
 #include <math.h>
 #include <iostream>
+#include <esp_now.h>
 //#include <web_connection.h>
 #include <web_js.h>
 //#include <web_app.h>

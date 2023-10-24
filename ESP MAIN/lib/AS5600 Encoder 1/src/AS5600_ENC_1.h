@@ -3,7 +3,7 @@
   AMS 5600 class for Arduino platform
   Author: Tom Denton
   Date: 15 Dec 2014
-  File: AS5600_ENC.h 
+  File: AS5600_ENC_1.h 
   Version 1.00
   www.ams.com
    
@@ -16,18 +16,19 @@
 // datasheet: https://ams.com/documents/20143/36005/AS5600_DS000365_5-00.pdf
 
 
-#ifndef AS5600_ENC_H
-#define AS5600_ENC_H
+#ifndef AS5600_ENC_1_H
+#define AS5600_ENC_1_H
 
 #include <Arduino.h>
 #include <Wire.h>
 
-class AS5600_ENC
+class AS5600_ENC_1
 {
 public:
 
-  AS5600_ENC();
-  ~AS5600_ENC();
+  AS5600_ENC_1();
+  ~AS5600_ENC_1();
+
 
   int getAddress();
 

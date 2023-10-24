@@ -959,10 +959,8 @@ void DDR_Control::setUpMotors(byte leftMotorStepPin, byte leftMotorDirPin, byte 
   setUpMotors(leftMotorStepPin, leftMotorDirPin, leftMotorEnablePin, rightMotorStepPin, rightMotorDirPin, rightMotorEnablePin);
 }
 
-void DDR_Control::setUpEncoders(TwoWire &I2C_left, TwoWire &I2C_right)
+void DDR_Control::setUpEncoders()
 {
-  L_ENCODER.setWire(I2C_left);
-  R_ENCODER.setWire(I2C_right);
 
   if (L_ENCODER.detectMagnet() == 0)
   {

@@ -4,18 +4,11 @@ TF_LUNA::TF_LUNA(int16_t address, uint16_t frame_rate, int LiDAR_id){
     this->address = address;
     this->LiDAR_id = LiDAR_id;
     this->frame_rate = frame_rate;
-    this->I2C_bus = &Wire;
 }
 
-TF_LUNA::TF_LUNA(int16_t address, uint16_t frame_rate, int id, TwoWire &I2C){
-    this->address = address;
-    this->LiDAR_id = LiDAR_id;
-    this->frame_rate = frame_rate;
-    this->I2C_bus = &I2C;
-}
 
-bool TF_LUNA::begin(){
-  luna.setWire(*this->I2C_bus);
+
+bool TF_LUNA:: begin(){
       while (bool flag = false)
   {
     if (luna.Set_Frame_Rate(frame_rate, this->address))

@@ -6,6 +6,7 @@
 //#include <Servo.h>
 #include <ESP32_Servo.h>
 #include <LittleFS.h>
+#include <esp_now.h>
 
 const int SDA_pin = 21;
 const int SCL_pin = 22;
@@ -92,3 +93,22 @@ void DC_loop();
 
 void servo_setup();
 void servo_loop();
+
+
+constexpr char wifi_SSID[] = "5 Titiwai Place";
+
+int32_t obtain_wifi(const char *ssid) {
+  if (int32_t n = WiFi.scanNetworks()) {
+      for (uint8_t i=0; i<n; i++) {
+          if (!strcmp(ssid, WiFi.SSID(i).c_str())) {
+              return WiFi.channel(i);
+          }
+      }
+  }
+  return 0;
+}
+
+void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+    Serial.print("\r\nLast Packet Send Status:\t");
+    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+}

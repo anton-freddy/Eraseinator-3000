@@ -99,10 +99,7 @@ class TFLI2C
 {
   public:
     TFLI2C();
-    TFLI2C(TwoWire &WIRE);
     ~TFLI2C();
-
-    void setWire(TwoWire &WIRE);
     // Get data
     bool getData( int16_t &dist, int16_t &flux, int16_t &temp, uint8_t addr);
     // Get data short version
@@ -134,7 +131,6 @@ class TFLI2C
     void printStatus();
 
   private:
-    TwoWire *ptr;
     uint8_t tfStatus;        // system error status: READY = 0
     uint8_t dataArray[ 6];
     uint8_t regReply;

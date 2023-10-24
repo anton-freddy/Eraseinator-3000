@@ -16,21 +16,23 @@
 // datasheet: https://ams.com/documents/20143/36005/AS5600_DS000365_5-00.pdf
 
 #include "Arduino.h"
-#include "AS5600_ENC.h"
+#include "AS5600_ENC_1.h"
 #include "Wire.h"
 
 /****************************************************
-  Method: AS5600_ENC
+  Method: AS5600_ENC_1
   In: none
   Out: none
   Description: constructor class for AMS 5600
 *****************************************************/
-AS5600_ENC::AS5600_ENC()
+AS5600_ENC_1::AS5600_ENC_1()
 {
 }
 
 
-AS5600_ENC::~AS5600_ENC(){}
+
+AS5600_ENC_1::~AS5600_ENC_1(){}
+
 
 
 
@@ -42,7 +44,7 @@ AS5600_ENC::~AS5600_ENC(){}
   Out: none
   Description: sets output mode in CONF register.
 *******************************************************/
-void AS5600_ENC::setOutPut(uint8_t mode)
+void AS5600_ENC_1::setOutPut(uint8_t mode)
 {
   int _conf_lo = _addr_conf + 1; // lower byte address
   uint8_t config_status = readOneByte(_conf_lo);
@@ -59,12 +61,12 @@ void AS5600_ENC::setOutPut(uint8_t mode)
 }
 
 /****************************************************
-  Method: AS5600_ENC
+  Method: AS5600_ENC_1
   In: none
   Out: i2c address of AMS 5600
   Description: returns i2c address of AMS 5600
 ****************************************************/
-int AS5600_ENC::getAddress()
+int AS5600_ENC_1::getAddress()
 {
   return _ams5600_Address;
 }
@@ -78,7 +80,7 @@ int AS5600_ENC::getAddress()
   magnet.  Setting this register zeros out max position
   register.
 *******************************************************/
-word AS5600_ENC::setMaxAngle(word newMaxAngle)
+word AS5600_ENC_1::setMaxAngle(word newMaxAngle)
 {
   word _maxAngle;
   if (newMaxAngle == -1)
@@ -101,7 +103,7 @@ word AS5600_ENC::setMaxAngle(word newMaxAngle)
   Out: value of max angle register
   Description: gets value of maximum angle register.
 *******************************************************/
-word AS5600_ENC::getMaxAngle()
+word AS5600_ENC_1::getMaxAngle()
 {
   return readTwoBytesSeparately(_addr_mang);
 }
@@ -114,7 +116,7 @@ word AS5600_ENC::getMaxAngle()
   If no value is provided, method will read position of
   magnet.
 *******************************************************/
-word AS5600_ENC::setStartPosition(word startAngle)
+word AS5600_ENC_1::setStartPosition(word startAngle)
 {
   word _rawStartAngle;
   if (startAngle == -1)
@@ -137,7 +139,7 @@ word AS5600_ENC::setStartPosition(word startAngle)
   Out: value of start position register
   Description: gets value of start position register.
 *******************************************************/
-word AS5600_ENC::getStartPosition()
+word AS5600_ENC_1::getStartPosition()
 {
   return readTwoBytesSeparately(_addr_zpos);
 }
@@ -150,7 +152,7 @@ word AS5600_ENC::getStartPosition()
   If no value is provided, method will read position of
   magnet.
 *******************************************************/
-word AS5600_ENC::setEndPosition(word endAngle)
+word AS5600_ENC_1::setEndPosition(word endAngle)
 {
   word _rawEndAngle;
   if (endAngle == -1)
@@ -173,7 +175,7 @@ word AS5600_ENC::setEndPosition(word endAngle)
   Out: value of end position register
   Description: gets value of end position register.
 *******************************************************/
-word AS5600_ENC::getEndPosition()
+word AS5600_ENC_1::getEndPosition()
 {
   word retVal = readTwoBytesSeparately(_addr_mpos);
   return retVal;
@@ -186,7 +188,7 @@ word AS5600_ENC::getEndPosition()
   Description: gets raw value of magnet position.
   start, end, and max angle settings do not apply
 *******************************************************/
-word AS5600_ENC::getRawAngle()
+word AS5600_ENC_1::getRawAngle()
 {
   return readTwoBytesTogether(_addr_raw_angle);
 }
@@ -199,7 +201,7 @@ word AS5600_ENC::getRawAngle()
   start, end, or max angle settings are used to
   determine value
 *******************************************************/
-word AS5600_ENC::getScaledAngle()
+word AS5600_ENC_1::getScaledAngle()
 {
   return readTwoBytesTogether(_addr_angle);
 }
@@ -211,7 +213,7 @@ word AS5600_ENC::getScaledAngle()
   Description: reads status register and examines the
   MD bit.
 *******************************************************/
-int AS5600_ENC::detectMagnet()
+int AS5600_ENC_1::detectMagnet()
 {
   // Status bits: 0 0 MD ML MH 0 0 0
   // MD high = magnet detected
@@ -229,7 +231,7 @@ int AS5600_ENC::detectMagnet()
   Description: reads status register and examines the
   MH,ML,MD bits.
 *******************************************************/
-int AS5600_ENC::getMagnetStrength()
+int AS5600_ENC_1::getMagnetStrength()
 {
   int retVal = 0; // no magnet
   // Status bits: 0 0 MD ML MH 0 0 0
@@ -255,7 +257,7 @@ int AS5600_ENC::getMagnetStrength()
   Out: value of AGC register
   Description: gets value of AGC register.
 *******************************************************/
-int AS5600_ENC::getAgc()
+int AS5600_ENC_1::getAgc()
 {
   return readOneByte(_addr_agc);
 }
@@ -266,7 +268,7 @@ int AS5600_ENC::getAgc()
   Out: value of magnitude register
   Description: gets value of magnitude register.
 *******************************************************/
-word AS5600_ENC::getMagnitude()
+word AS5600_ENC_1::getMagnitude()
 {
   return readTwoBytesTogether(_addr_magnitude);
 }
@@ -277,7 +279,7 @@ word AS5600_ENC::getMagnitude()
   Out: value of CONF register
   Description: gets value of CONF register.
 *******************************************************/
-word AS5600_ENC::getConf()
+word AS5600_ENC_1::getConf()
 {
   return readTwoBytesSeparately(_addr_conf);
 }
@@ -288,7 +290,7 @@ word AS5600_ENC::getConf()
   Out: none
   Description: sets value of CONF register.
 *******************************************************/
-void AS5600_ENC::setConf(word _conf)
+void AS5600_ENC_1::setConf(word _conf)
 {
   writeOneByte(_addr_conf, highByte(_conf));
   delay(2);
@@ -303,7 +305,7 @@ void AS5600_ENC::setConf(word _conf)
   Description: determines how many times chip has been
   permanently written to.
 *******************************************************/
-int AS5600_ENC::getBurnCount()
+int AS5600_ENC_1::getBurnCount()
 {
   return readOneByte(_addr_zmco);
 }
@@ -318,7 +320,7 @@ int AS5600_ENC::getBurnCount()
   Description: burns start and end positions to chip.
   THIS CAN ONLY BE DONE 3 TIMES
 *******************************************************/
-int AS5600_ENC::burnAngle()
+int AS5600_ENC_1::burnAngle()
 {
   word _zPosition = getStartPosition();
   word _mPosition = getEndPosition();
@@ -352,7 +354,7 @@ int AS5600_ENC::burnAngle()
   Description: burns max angle and config data to chip.
   THIS CAN ONLY BE DONE 1 TIME
 *******************************************************/
-int AS5600_ENC::burnMaxAngleAndConfig()
+int AS5600_ENC_1::burnMaxAngleAndConfig()
 {
   word _maxAngle = getMaxAngle();
 
@@ -376,16 +378,16 @@ int AS5600_ENC::burnMaxAngleAndConfig()
   Out: data read from i2c
   Description: reads one byte register from i2c
 *******************************************************/
-int AS5600_ENC::readOneByte(int in_adr)
+int AS5600_ENC_1::readOneByte(int in_adr)
 {
   int retVal = -1;
-  Wire.beginTransmission(_ams5600_Address);
-  Wire.write(in_adr);
-  Wire.endTransmission();
-  Wire.requestFrom(_ams5600_Address, (uint8_t)1);
-  while (Wire.available() == 0)
+  Wire1.beginTransmission(_ams5600_Address);
+  Wire1.write(in_adr);
+  Wire1.endTransmission();
+  Wire1.requestFrom(_ams5600_Address, (uint8_t)1);
+  while (Wire1.available() == 0)
     ;
-  retVal = Wire.read();
+  retVal = Wire1.read();
 
   return retVal;
 }
@@ -396,7 +398,7 @@ int AS5600_ENC::readOneByte(int in_adr)
   Out: data read from i2c as a word
   Description: reads two bytes register from i2c
 *******************************************************/
-word AS5600_ENC::readTwoBytesTogether(int addr_in)
+word AS5600_ENC_1::readTwoBytesTogether(int addr_in)
 {
 
   // use only for Angle, Raw Angle and Magnitude
@@ -418,15 +420,15 @@ word AS5600_ENC::readTwoBytesTogether(int addr_in)
   // the address pointer is set to the high byte of the register.
 
   /* Read 2 Bytes */
-  Wire.beginTransmission(_ams5600_Address);
-  Wire.write(addr_in);
-  Wire.endTransmission();
-  Wire.requestFrom(_ams5600_Address, (uint8_t)2);
-  while (Wire.available() < 2)
+  Wire1.beginTransmission(_ams5600_Address);
+  Wire1.write(addr_in);
+  Wire1.endTransmission();
+  Wire1.requestFrom(_ams5600_Address, (uint8_t)2);
+  while (Wire1.available() < 2)
     ;
 
-  int highByte = Wire.read();
-  int lowByte = Wire.read();
+  int highByte = Wire1.read();
+  int lowByte = Wire1.read();
 
   // in case newer version of IC used the same address to
   //    store something else, get only the 3 bits
@@ -443,7 +445,7 @@ word AS5600_ENC::readTwoBytesTogether(int addr_in)
   Out: data read from i2c as a word
   Description: reads two bytes register from i2c
 *******************************************************/
-word AS5600_ENC::readTwoBytesSeparately(int addr_in)
+word AS5600_ENC_1::readTwoBytesSeparately(int addr_in)
 {
   int highByte = readOneByte(addr_in);
   int lowByte = readOneByte(addr_in + 1);
@@ -456,12 +458,12 @@ word AS5600_ENC::readTwoBytesSeparately(int addr_in)
   Out: none
   Description: writes one byte to a i2c register
 *******************************************************/
-void AS5600_ENC::writeOneByte(int adr_in, int dat_in)
+void AS5600_ENC_1::writeOneByte(int adr_in, int dat_in)
 {
-  Wire.beginTransmission(_ams5600_Address);
-  Wire.write(adr_in);
-  Wire.write(dat_in);
-  Wire.endTransmission();
+  Wire1.beginTransmission(_ams5600_Address);
+  Wire1.write(adr_in);
+  Wire1.write(dat_in);
+  Wire1.endTransmission();
 }
 
 /**********  END OF AMS 5600 CLASS *****************/

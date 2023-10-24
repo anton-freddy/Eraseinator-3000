@@ -8,11 +8,13 @@
 // Web Info
 // const char *ssid = "Rajput";
 // const char *password = "pinksquash989";
-const char *ssid = "Doofenschmirtz-Inc";
-const char *password = "password";
+// const char *ssid = "Doofenschmirtz-Inc";
+// const char *password = "password";
+const char *ssid = "5 Titiwai Place";
+const char *password = "Nala2022!";
 // #define server_ip "192.168.55.40"
 #define ws_path "/"
-#define ws_host "192.168.1.3"
+#define ws_host "192.168.5.72"
 #define ws_port 81
 
 WebSocketClient webSocketClient;

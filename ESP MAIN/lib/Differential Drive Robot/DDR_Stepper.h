@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <math.h>
 #include <AS5600_ENC.h>
+#include <AS5600_ENC_1.h>
 #include <Wire.h>
 #include <ERROR.h>
 #include <MPU9250.h>
@@ -75,7 +76,7 @@ private:
   bool relative_backwards = false;
 
   AS5600_ENC R_ENCODER;
-  AS5600_ENC L_ENCODER;
+  AS5600_ENC_1 L_ENCODER;
 
   //  Stepper Varibales
   byte L_E_pin;
@@ -231,7 +232,7 @@ public:
   void setSpeedInKMH(float speed);
 
   //  Encoder Control  //-----------
-  void setUpEncoders(TwoWire &I2C_left, TwoWire &I2C_right);
+  void setUpEncoders();
   void resetEncoders(motor selector);
   float getEncoderAngle(motor identifier);
 
